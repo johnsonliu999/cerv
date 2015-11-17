@@ -29,6 +29,9 @@ public:
 
     static void insert(Predictor predictor,User user);
     static Predictor query(User user);
+
+private:
+    DAO();
 };
 
 #endif // DAO_H
