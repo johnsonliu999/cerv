@@ -5,47 +5,39 @@
 #include "cpredictor.h"
 #include "cserialreader.h"
 #include <QString>
+#include <QList>
+#include <QDebug>
 class SitLogic
 {
 public:
     SitLogic();
 
-    static  eSitType getSitType()
+    static  QList<CPredictor::eSitType> getSitType()
     {
          return stType;
     }
 
-    static void readOne()
+    static void init();
+
+
+    static void readOnce();
+
+
+    static CPredictor::eSitType getAverageType()
     {
-        CPredictor predictor;
-        CSerialReader reader;
-        stType =predictor.Predict(reader.ReadSerial());
+         return stType.at(0);
     }
 
-    static  QString fetchJudgedMessage(CPredictor::eSitType sitType =stType)
-    {
-        switch (sitType) {
-        case CPredictor::NORMAL:
-            return "Normal";
-            break;
-        case CPredictor::LEFTWARD:
-            return "Leftward";
-            break;
-        case CPredictor::RIGHTWARD:
-            return "Rightward";
-            break;
-        case CPredictor::BACKWARD:
-            return "Backward";
-            break;
-        case CPredictor::FORWARD:
-            return "Forward";
+    static  QString fetchJudgedMessage(CPredictor::eSitType sitType);
 
-        }
 
-    }
+
 
 private:
-    static CPredictor::eSitType stType  =CPredictor::NORMAL;
+    static    CPredictor* predictor;
+    static    CSerialReader* reader;
+    static    QList<CPredictor::eSitType> stType;
 };
+
 
 #endif // SITLOGIC_H

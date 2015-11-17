@@ -2,7 +2,7 @@
 #include "ui_ReportWindow.h"
 #include <QStandardItemModel>
 #include "capture.h"
-ReportWindow::ReportWindow(QWidget *parent, QList<Log> reportSet) :
+ReportWindow::ReportWindow( QList<Log>& reportSet,QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReportWindow)
 {
@@ -70,9 +70,9 @@ void ReportWindow::setTable(QList<Log> reportSet)
          model->item(i,0)->setTextAlignment(Qt::AlignCenter);
          model->setItem(i,1,new QStandardItem(log.face_type));
          model->setItem(i,2,new QStandardItem(log.sit_type));
-         model->setItem(i,3,new QStandardItem(log.start_t.toString()));
-         model->setItem(i,4,new QStandardItem(log.end_t.toString()));
-         model->setItem(i,5,new QStandardItem((log.end_t-log.start_t).toString()));
+         model->setItem(i,3,new QStandardItem(log.start_t.toString("hh:mm:ss")));
+         model->setItem(i,4,new QStandardItem(log.end_t.toString("hh:mm:ss")));
+         model->setItem(i,5,new QStandardItem(log.start_t.secsTo(log.end_t)));
      }
     //四、删除行：
     //x是指定删除哪一行

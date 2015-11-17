@@ -19,19 +19,15 @@ class DAO
 {
 public:
 
-    static void insert(Log log,User user);
-    static  QList<Log> query(QDate date,User user);
+    static void insert(Log& log);
+    static  QList<Log> query(QDate& date,User& user);
 
-    static void insert(User user);
-    static User query(QString username);
+    static void insert(User& user);
+    static bool query(QString& username);
+	
+    static void insert(Predictor& predictor);
+    static Predictor query(User& user);
 
-
-
-    static void insert(Predictor predictor,User user);
-    static Predictor query(User user);
-
-private:
-    DAO();
 };
 
 #endif // DAO_H

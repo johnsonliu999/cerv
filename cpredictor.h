@@ -17,19 +17,23 @@ public:
     enum eSitType {NORMAL=0, BACKWARD=6, FORWARD=7, RIGHTWARD=12, LEFTWARD=13};
 
 public:
-    static CPredictor* getPredictor(const QString& cUserName);
+    static CPredictor* getPredictor();
     eSitType Predict(const QList<int> & iPredictData);
-    bool CollectData();
+    void loadFromDB();
+    void save2DB();
+    void train();
 
-private:
-    QString cUserName;
+private:   
     Ptr<RTrees> pTrees;
+
     static CPredictor* m_pPredictor;
     CPredictor();
 
+
+
 private:
     bool __PrepareData(const QString &cUserName, Mat &iData, Mat &iLabel, QSqlDatabase iConnection);
-    bool __BuildRTrees(Mat & i_Data, Mat & i_Label);
+    void __BuildRTrees(Mat & i_Data, Mat & i_Label);
 
 
 };

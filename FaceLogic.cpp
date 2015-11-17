@@ -2,14 +2,15 @@
 #include <fstream>
 #include <math.h>
 #include <QDebug>
+#include <string>
 
 FacePostureType FaceLogic::rtType =Normal;
-vector<Point> FaceLogic::normal =vector<Point>();
+QList<Point> FaceLogic::normal =QList<Point>();
 
 bool FaceLogic::isInitialized()
 {
     qDebug() << "Enter isInitialized";
-	ifstream file("position.txt");
+    std::ifstream file("position.txt");
     qDebug() << "Leave isInitialized";
 	return file;
 }
@@ -17,7 +18,7 @@ bool FaceLogic::isInitialized()
 bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Point& mouth)
 {
     qDebug() << "Enter storeNormalValue";
-	ofstream out("position.txt");  
+    std::ofstream out("position.txt");
     if (out.is_open())   
     {
         qDebug() << "Open position.txt";
@@ -30,20 +31,20 @@ bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Poi
     return false;
 }
 
-vector<Point> FaceLogic::getNormalValue()
+QList<Point> FaceLogic::getNormalValue()
 {
-	ifstream file("position.txt");
-	vector<Point> temp;
+    std::ifstream file("position.txt");
+    QList<Point> temp;
 	if(file.is_open())
 	{
-		string line;
+        std::string line;
 		while(getline(file,line))
 		{
 			int index = line.find_first_of(" ");
-			string x =line.substr(0,index);
-			string y =line.substr(index+1,line.length());
+            std::string x =line.substr(0,index);
+            std::string y =line.substr(index+1,line.length());
 			Point p(atoi(x.c_str()),atoi(y.c_str()));
-			temp.push_back(p);
+            temp.append(p);
 		}
 	}
 	else{

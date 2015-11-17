@@ -14,7 +14,7 @@ class ReportWindow : public QMainWindow
 
 public:
 
-    explicit ReportWindow(QWidget *parent = 0,QList<Log> reportSet);
+    explicit ReportWindow(QList<Log>& reportSet,QWidget *parent = 0);
 
     ~ReportWindow();
 

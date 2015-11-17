@@ -1,5 +1,5 @@
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef MYSESSION_H
+#define MYSESSION_H
 
 #include "User.h"
 
@@ -11,7 +11,7 @@
 class Session
 {
 public:
-    Session();
+
     static User user;
 };
 

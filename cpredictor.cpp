@@ -13,6 +13,12 @@
 #include <cv.h>
 #include <ml.h>
 
+
+//dao model  session
+#include "Predictor.h"
+#include "DAO.h"
+#include "MySession.h"
+
 using namespace cv;
 using namespace cv::ml;
 
@@ -23,7 +29,7 @@ CPredictor* CPredictor::m_pPredictor = NULL;
 
 CPredictor::CPredictor()
 {
-    this->cUserName = cUserName;
+
 }
 
 /**
@@ -58,53 +64,8 @@ CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
  * @param cUserName
  * @return ：成功返回实例指针，失败返回NULL
  */
-CPredictor *CPredictor::getPredictor(const QString &cUserName)
+CPredictor *CPredictor::getPredictor()
 {
-    if (m_pPredictor == NULL)
-        m_pPredictor = new CPredictor();
-
-    if (cUserName == m_pPredictor->cUserName)
-        return m_pPredictor;
-
-    m_pPredictor->cUserName = cUserName;
-
-    if (QFile(cUserName).exists())
-    {
-        qDebug() << "Detect existing algorithm file, now load it";
-        m_pPredictor->pTrees = Algorithm::load<RTrees>((String)cUserName.toStdString());
-        qDebug() << "Finished load";
-        return m_pPredictor;
-    }
-    qDebug() << "Not detect algorighm, start to build model & prepare algorithm file";
-
-    // not find file
-    QSqlDatabase iDB = CDatabase::getDB();
-    if (!iDB.isValid())
-    {
-        qDebug() << "Database not valid";
-        return NULL;
-    }
-
-    Mat iTrainingData = Mat(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1);
-    Mat iLable = Mat(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1);
-    if (!m_pPredictor->__PrepareData(cUserName, iTrainingData, iLable, QSqlDatabase::database()))
-    {
-        qDebug() << "Prepare data failed";
-        return NULL;
-    }
-
-    if (!m_pPredictor->__BuildRTrees(iTrainingData, iLable))
-    {
-        qDebug() << "BuildRTrees failed";
-        return NULL;
-    }
-
-    qDebug() << "Finished build the model";
-
-    // should store the trained rtrees
-    qDebug() << "Now save the model & algorithm file";
-    m_pPredictor->pTrees->save((String)cUserName.toStdString());
-
     return m_pPredictor;
 }
 
@@ -173,7 +134,7 @@ bool CPredictor::__PrepareData(const QString & cUserName, Mat & iData, Mat & iLa
  * @param iLabel：分类标签
  * @return ：false表示失败，成功返回true
  */
-bool CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
+void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 {
     // 创建训练数据集及随机森林模型
     Ptr<TrainData> pTrainData = TrainData::create(iData, ROW_SAMPLE, iLabel);
@@ -191,17 +152,11 @@ bool CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 
     if (pTrees->train(pTrainData))
     {
-        qDebug() << "Train succeed";
-
-        // try to store the algorithm
-        pTrees->save(cUserName.toStdString());
-        qDebug() << "After write algorithm";
-        return true;
+        qDebug() << "Train succeed";      
     }
     else
     {
-        qDebug() << "Train failed";
-        return false;
+        qDebug() << "Train failed";      
     }
 }
 
@@ -213,66 +168,114 @@ bool CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  *
  * @return
  */
-bool CPredictor::CollectData()
+//bool CPredictor::CollectData()
+//{
+//    QSqlDatabase iDB = CDatabase::getDB();
+//    if (!iDB.isValid())
+//    {
+//        qDebug() << "Database is not valid";
+//        return false;
+//    }
+
+//    CSerialReader* pReader = CSerialReader::getReader();
+//    pReader->OpenSerial();
+
+//    QList< QList<int> > iDataListList;
+
+//    // form sql like 'insert into test values (NULL, ? ... ?)', total 21 '?'
+//    QString cQueryString = "insert into " + cUserName + " values (NULL,";
+//    for (int i = 0; i <20; i++)
+//        cQueryString += "?,";
+//    cQueryString += "?)";
+
+//    QSqlQuery iQuery;
+//    iQuery.prepare(cQueryString);
+
+//    QStringList lSitStringList;
+//    lSitStringList << "normal" << "backward" << "forward" << "rightward" << "leftward";
+//    int nLabel[5] = {0,6,7,12,13};
+
+//    // 每个类型的记录条数，用来判断是否达标
+//    int nTotalNumber = 0;
+//    for (int i = 0; i < lSitStringList.size(); i++)
+//    {
+//        qDebug() << "Now collect" << lSitStringList.at(i) << "data, please keep";
+//        while (nTotalNumber < 1000)
+//        {
+//            iDataListList = pReader->ReadSerial();
+//            QThread::sleep(5);
+//            nTotalNumber += iDataListList.size();
+//            qDebug() << "iDataListList size" << iDataListList.size();
+//            for (int j = 0; j < iDataListList.size(); j++)
+//            {
+//                qDebug() << j << iDataListList.at(j);
+//                for (int k = 0; k < 20; k++)
+//                    // iQuery.addBindValue(iDataListList.at(j).at(k));
+//                    iQuery.bindValue(k, iDataListList.at(j).at(k));
+//                //iQuery.addBindValue(nLabel[i]);
+//                iQuery.bindValue(20, nLabel[i]);
+//                if(!iQuery.exec())
+//                {
+//                    qDebug() << "Query exec error";
+//                    qDebug() << iQuery.executedQuery();
+//                    qDebug() << iQuery.lastError().text();
+//                    return false;
+//                }
+//            }
+
+//            qDebug() << "Collected " << nTotalNumber;
+//        }
+//        qDebug() << "Finished" << lSitStringList.at(i) << "collect";
+//        nTotalNumber = 0;
+//    }
+//    qDebug() << "Finished collect data";
+//    return true;
+//}
+
+void CPredictor::loadFromDB()
 {
-    QSqlDatabase iDB = CDatabase::getDB();
-    if (!iDB.isValid())
-    {
-        qDebug() << "Database is not valid";
-        return false;
-    }
 
-    CSerialReader* pReader = CSerialReader::getReader();
-    pReader->OpenSerial();
+     Predictor p =DAO::query(Session::user);
+     pTrees->loadFromString<RTrees>((String)p.xml.toStdString());
+}
 
-    QList< QList<int> > iDataListList;
 
-    // form sql like 'insert into test values (NULL, ? ... ?)', total 21 '?'
-    QString cQueryString = "insert into " + cUserName + " values (NULL,";
-    for (int i = 0; i <20; i++)
-        cQueryString += "?,";
-    cQueryString += "?)";
+#include <QFile>
+void CPredictor::save2DB()
+{
+     pTrees->save("temp.xml");
 
-    QSqlQuery iQuery;
-    iQuery.prepare(cQueryString);
+     //read file to database,and delete the temp file.
 
-    QStringList lSitStringList;
-    lSitStringList << "normal" << "backward" << "forward" << "rightward" << "leftward";
-    int nLabel[5] = {0,6,7,12,13};
+     Predictor p;
+     p.user =Session::user;
+     QFile f("temp.xml");
+     p.xml  =f.readAll();
 
-    // 每个类型的记录条数，用来判断是否达标
-    int nTotalNumber = 0;
-    for (int i = 0; i < lSitStringList.size(); i++)
-    {
-        qDebug() << "Now collect" << lSitStringList.at(i) << "data, please keep";
-        while (nTotalNumber < 1000)
-        {
-            iDataListList = pReader->ReadSerial();
-            QThread::sleep(5);
-            nTotalNumber += iDataListList.size();
-            qDebug() << "iDataListList size" << iDataListList.size();
-            for (int j = 0; j < iDataListList.size(); j++)
-            {
-                qDebug() << j << iDataListList.at(j);
-                for (int k = 0; k < 20; k++)
-                    // iQuery.addBindValue(iDataListList.at(j).at(k));
-                    iQuery.bindValue(k, iDataListList.at(j).at(k));
-                //iQuery.addBindValue(nLabel[i]);
-                iQuery.bindValue(20, nLabel[i]);
-                if(!iQuery.exec())
-                {
-                    qDebug() << "Query exec error";
-                    qDebug() << iQuery.executedQuery();
-                    qDebug() << iQuery.lastError().text();
-                    return false;
-                }
-            }
+     DAO::insert(p);
 
-            qDebug() << "Collected " << nTotalNumber;
-        }
-        qDebug() << "Finished" << lSitStringList.at(i) << "collect";
-        nTotalNumber = 0;
-    }
-    qDebug() << "Finished collect data";
-    return true;
+
+
+     f.remove();
+}
+
+void CPredictor::train()
+{
+
+
+//    Mat iTrainingData = Mat(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1);
+//    Mat iLable = Mat(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1);
+//    if (!m_pPredictor->__PrepareData(cUserName, iTrainingData, iLable, QSqlDatabase::database()))
+//    {
+//        qDebug() << "Prepare data failed";
+
+//    }
+
+//    if (!m_pPredictor->__BuildRTrees(iTrainingData, iLable))
+//    {
+//        qDebug() << "BuildRTrees failed";
+
+//    }
+
+
 }

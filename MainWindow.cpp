@@ -1,94 +1,46 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-#include "capture.h"
-#include <iostream>
-#include <time.h>
+
+
 #include <QMessageBox>
-#include "FaceLogic.h"
 #include "ReportWindow.h"
+#include <QTime>
+
+
+//data
 #include "Log.h"
-#include <QDebug>
-
-#include "cserialreader.h"
-#include "cpredictor.h"
-#include "cdatabase.h"
-#include "SitLogic.h"
-
-
-//DAO
 #include "DAO.h"
-//Session
-#include "Session.h"
+#include "MySession.h"
+//sit
+#include "SitLogic.h"
+//face
+#include "capture.h"
+#include "FaceLogic.h"
+
+
 
 using namespace std;
 
 bool MainWindow::initSeatDevice()
 {
-    qDebug() << "***Start initialize seat device";
-    // the serial port & device part
-    CSerialReader* p_iReader = CSerialReader::getReader();
-    if(!p_iReader->OpenSerial())
-    {
-        qDebug() << "Cannot open serial port";
-        return false;
-    }
-    qDebug() << "Open serial port succeed";
-
-    if(!p_iReader->ConnectDevice())
-    {
-        qDebug() << "Cannot connect device";
-        return false;
-    }
-    qDebug() << "Connect device succeed";
-
-    // the predictor part, assume user test
-    CPredictor* p_iPredictor = CPredictor::getPredictor("test");
-    if (p_iPredictor == NULL)
-    {
-        qDebug() << "predictor initialize failed";
-        return false;
-    }
-    qDebug() << "Predictor initalize succeed";
-
-    qDebug() << "***Initialize seat device finished";
-
+    SitLogic::init();
     return true;
 }
 
 bool MainWindow::seatProcess()
 {
-    qDebug() << "***Enter seatProcess";
 
-    QString seatResultDisplayString = "";
-    QString seatRawDataDisplayString = "";
+    QString seatResultDisplayString = "";    
 
-    CSerialReader* p_iReader = CSerialReader::getReader();
-    QList< QList<int> > iDataListList = p_iReader->ReadSerial();
-    qDebug() << "iDataListList size" << iDataListList.size();
-
-    CPredictor* p_iPredictor = CPredictor::getPredictor("test");
-    for (int i = 0; i < iDataListList.size(); i++)
+    SitLogic::readOnce();
+    for(auto res : SitLogic::getSitType())
     {
-        CPredictor::eSitType  eRes = p_iPredictor->Predict(iDataListList.at(i));
-        qDebug() << "Result" << i << eRes;
-        seatResultDisplayString = seatResultDisplayString + "Result<" + QString::number(i) + "> " + QString::number(eRes) + " ";
-        seatResultDisplayString+=SitLogic::fetchJudgedMessage(eRes);
-        seatResultDisplayString += "\n";
+        seatResultDisplayString+=SitLogic::fetchJudgedMessage(res)+"\n";
     }
-    ui->seatInfoEdit->setPlainText(seatResultDisplayString);
 
-    for (int i = 0; i < iDataListList.size(); i++)
-    {
-        seatRawDataDisplayString = seatRawDataDisplayString +  "<" + QString::number(i) + ">";
-        for (int j = 0; j < 20; j++)
-            seatRawDataDisplayString = seatRawDataDisplayString + "\t" + QString::number(iDataListList.at(i).at(j));
-        seatRawDataDisplayString += "\n";
-    }
-    ui->seatRawDataEdit->setPlainText(seatRawDataDisplayString);
+     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
 
-    qDebug() << "***Leave seatProcess";
-
-    return true;
+     return true;
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -109,37 +61,32 @@ MainWindow::~MainWindow()
     delete timer;
 }
 
+
+
 void MainWindow::shakeFrm()
 {
-        //记录窗体的初始位置
-        QPoint p=this->pos();
-        qsrand(time(NULL));
 
-        //循环移动窗体位置,可以自己修改循环次数,次数越多,抖动时间越长
-        for(int i=0;i<=50;i++)
-        {
-            //在窗体原来的位置的基础上随机改变窗体的坐标位置,其中的随机数区间可以随意修改,数值越大,抖动幅度越大,最好正负成对
-            QPoint n =QPoint(p.x()+qrand()%20-10,p.y()+qrand()%20-10);
-            this->move(n);
-            //让窗体回到初始位置
-            this->move(p);
-        }
 }
+
+
 
 bool first =true;
 int face_duration =0;
 FacePostureType previous;
-time_t start_t;
-time_t end_t;
+QTime start_t;
+QTime end_t;
 void MainWindow::timing()
 {
-    qDebug() << "***Enter timing***";
+
+
     ui->label->setPixmap(QPixmap::fromImage(detect()));
+    seatProcess();
+
     if(first)
     {
         previous =FaceLogic::getRtType();
         first =false;
-        start_t =time(NULL);
+        start_t =QTime::currentTime();
     }
     if(FaceLogic::getRtType() == previous)
     {
@@ -150,40 +97,23 @@ void MainWindow::timing()
         //以下为提交报告
         if(face_duration>=5)
         {
-            end_t =time(NULL);
-            tm* end_time =   localtime(&end_t);
+            end_t =QTime::currentTime();
 
-            int hour =end_time->tm_hour;
-            int min =end_time->tm_min;
-            int sec =end_time->tm_sec;
+            Log log;
+            log.date =QDate::currentDate();
+            log.start_t =start_t;
+            log.end_t =end_t;
+            log.face_type =FaceLogic::getRtType();
+            log.sit_type =SitLogic::getAverageType();
+            log.user =Session::user;
 
-            tm* start_time = localtime(&start_t);
-
-            string startstr =int2str(start_time->tm_hour)+":"+
-                             int2str(start_time->tm_min)+":"+
-                             int2str(start_time->tm_sec);
-            string endstr =  int2str(hour)+":"+
-                             int2str(min)+":"+
-                             int2str(sec);
-            int duration =3600*(hour-start_time->tm_hour)+
-                          60*(min-start_time->tm_min)+
-                          (sec-start_time->tm_sec);
-
-
-            extern const char * PostureEnumNames[];
-            Report report(startstr,endstr,string(PostureEnumNames[previous]),duration);
-            string day_str =int2str(1900 + start_time->tm_year)+"-"+
-                            int2str(1 + start_time->tm_mon/*此month的范围为0-11*/)+"-"+
-                            int2str(start_time->tm_mday);
-
-
-            writeReport(report,day_str.c_str());
+            DAO::insert(log);
 
         }
 
         previous =FaceLogic::getRtType();
-        face_duration =1;
-        start_t =time(NULL);
+
+        start_t =QTime::currentTime();
     }
 
     //如果同一姿势超过五次，则按姿势相应处理
@@ -209,11 +139,11 @@ void MainWindow::timing()
                 break;
         }
     }
-    ui->plainTextEdit->setPlainText(QString(FaceLogic::fetchJudgedMessage().c_str()));
+    ui->plainTextEdit->setPlainText(FaceLogic::fetchJudgedMessage());
 
-    seatProcess();
 
-    qDebug() << "***Leave timing***";
+
+
 }
 
 void MainWindow::on_MainWindow_destroyed()
@@ -226,7 +156,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
     QList<Log> logs =DAO::query(const_cast<QDate&>(date),Session::user);
 
-    ReportWindow* w =new ReportWindow(this,logs);
+    ReportWindow* w =new ReportWindow(logs,this);
     w->show();
 }
 
