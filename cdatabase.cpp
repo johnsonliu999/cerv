@@ -1,8 +1,7 @@
 #include "cdatabase.h"
-#include <QSqlError>
-#include <QSqlDatabase>
-#include <QDebug>
 
+
+QSqlDatabase CDatabase::db =QSqlDatabase();
 CDatabase::CDatabase()
 {
 
@@ -10,7 +9,7 @@ CDatabase::CDatabase()
 
 bool CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &cHostName, const QString &cDatabaseName, const QString &cUserName, const QString &cPassword)
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase(cDatabaseType);
+    db = QSqlDatabase::addDatabase(cDatabaseType);
     db.setHostName(cHostName);
     db.setDatabaseName(cDatabaseName);
     db.setUserName(cUserName);
@@ -28,12 +27,13 @@ bool CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &c
 
 const QSqlDatabase CDatabase::getDB()
 {
-    QSqlDatabase db = QSqlDatabase::database();
+
     if (db.isValid())
     {
         if (db.isOpen() || db.open())
         {
             qDebug() << "Connect database succeed";
+            return db;
         }
 
         qDebug() << "Connect database failed, DB cannot use";
@@ -41,18 +41,18 @@ const QSqlDatabase CDatabase::getDB()
     }
     else
     {
-        CDatabase iDB;
-        iDB.__ConnectDatabase();
+       __ConnectDatabase();
+
+       // after connect, should use the new create connection
+       db = QSqlDatabase::database();
+       return db;
     }
 
-    // after connect, should use the new create connection
-    db = QSqlDatabase::database();
-    return db;
 }
 
 void CDatabase::CloseDB()
 {
-    QSqlDatabase db = QSqlDatabase::database();
+
     db.close();
 }
 

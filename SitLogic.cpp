@@ -4,11 +4,16 @@ QList<CPredictor::eSitType> SitLogic::stType = QList<CPredictor::eSitType>();
 CPredictor* SitLogic::predictor =CPredictor::getPredictor();
 CSerialReader* SitLogic::reader =CSerialReader::getReader();
 
+QList<CPredictor::eSitType> SitLogic::getSitType()
+{
+     return stType;
+}
+
 /**
- * @brief SitLogic::init
- * open the bluetooth serial port
- * and connect the slave bluetooth device
- */
+* @brief SitLogic::init
+* open the bluetooth serial port
+* and connect the slave bluetooth device
+*/
 void SitLogic::init()
 {
     if(!reader->OpenSerial(BT_ID))
@@ -25,13 +30,16 @@ void SitLogic::init()
     qDebug() << "Init seat finished";
 }
 
-
 void SitLogic::readOnce()
 {
     for(auto data : reader->ReadSerial())
-         stType.append(predictor->Predict(data));
+        stType.append(predictor->Predict(data));
 }
 
+CPredictor::eSitType SitLogic::getAverageType()
+{
+     return stType.at(0);
+}
 
 QString SitLogic::fetchJudgedMessage(CPredictor::eSitType sitType)
 {

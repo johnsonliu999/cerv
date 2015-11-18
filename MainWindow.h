@@ -30,8 +30,8 @@ private slots:
     void on_pushButton_4_clicked();
 
     /*** seat operation ***/
-    bool initSeatDevice();
-    bool seatProcess();
+
+    void seatProcess();
     /**********************/
 
 private:

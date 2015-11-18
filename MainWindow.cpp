@@ -17,15 +17,9 @@
 
 
 
-using namespace std;
 
-bool MainWindow::initSeatDevice()
-{
-    SitLogic::init();
-    return true;
-}
 
-bool MainWindow::seatProcess()
+void MainWindow::seatProcess()
 {
 
     QString seatResultDisplayString = "";    
@@ -36,9 +30,8 @@ bool MainWindow::seatProcess()
         seatResultDisplayString+=SitLogic::fetchJudgedMessage(res)+"\n";
     }
 
-     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
+    ui->seatInfoEdit->setPlainText(seatResultDisplayString);
 
-     return true;
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -47,10 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);    
     connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
-    //ui->calendarWidget->setDateRange();
 
-    if(!initSeatDevice()) qDebug() << "Initialize seat device failed";
-    else qDebug() << "Initialize seat device succeed";
 }
 
 MainWindow::~MainWindow()
@@ -146,7 +136,7 @@ void MainWindow::timing()
 
 void MainWindow::on_MainWindow_destroyed()
 {
-     exitApp();
+     closeCamera();
 }
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
@@ -160,7 +150,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_pushButton_4_clicked()
 {
-    qDebug() << "Button4 clicked";
+
     if(ui->pushButton_4->text()=="Start")
     {
         if(!isAllowCameraOpen())
@@ -170,8 +160,15 @@ void MainWindow::on_pushButton_4_clicked()
                 return;
             allowCameraOpen();
         }
-        string msg = openCamera();
-        qDebug() << msg.data();
+        try
+        {
+            openCamera();
+            SitLogic::init();
+        }catch(const char* msg)
+        {
+            QMessageBox::information(this,"error",tr(msg));
+                return;
+        }
 
         //¶¨Ê±½ØÆÁ
         qDebug() << "Start timer";

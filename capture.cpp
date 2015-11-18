@@ -1,10 +1,23 @@
 #include "capture.h"
 #include "FaceLogic.h"
+
+
+
 #include <qdebug.h>
+#include <vector>
+#include <string>
+#include <fstream>
+#include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+using namespace std;
 using namespace cv;
 
  /** Function Headers */
- void detectAndDisplay( Mat frame );
+ QImage cvMat2QImage(const cv::Mat& mat);
+ cv::Mat QImage2cvMat(QImage image);
+ vector<string> split(const string& src, string delimit, string null_subst);
  void triangle(Mat& frame,const Point& x1,const Point& x2,const Point& x3);
  string positionStr(const Point& p);
  string int2str(int n);
@@ -18,7 +31,6 @@ using namespace cv;
  CascadeClassifier eyes_cascade;
  CascadeClassifier mouth_cascade;
  CascadeClassifier profile_cascade;
- string window_name = "Capture - Face detection";
 
 
 
@@ -28,11 +40,11 @@ using namespace cv;
 
 
  VideoCapture cap;
- string openCamera()
+ void openCamera()
  {
-     qDebug() << "Enter OpenCamera";
+
      if(cap.isOpened())
-         return "";
+         return;
      //-- 1. Load the cascades
      if( !face_cascade.load( face_cascade_name ) ||
          !eyes_cascade.load( eyes_cascade_name ) ||
@@ -40,15 +52,19 @@ using namespace cv;
          !profile_cascade.load( profile_cascade_name) )
      {
          qDebug() << "Xml file not found";
-         return "Xml file not found";
+         throw "Xml file not found";
+
      }
 
      qDebug() << "Xml fild found";
-     if(cap.open(0)) qDebug() << "Open camera";
-     else qDebug() << "Open camera failed";
-     qDebug() << "Leave OpenCamera";
+     if(cap.open(0))
+         qDebug() << "Open camera";
+     else
+     {
+         qDebug() << "Open camera failed";
+         throw "Open camera failed";
+     }
 
-     return "";
  }
 
  void closeCamera()
@@ -57,11 +73,7 @@ using namespace cv;
         cap.release();
  }
 
- void exitApp()
- {
-     closeCamera();
-     //destroyWindow(window_name);
- }
+
 
 
 
@@ -109,42 +121,33 @@ QImage detect()
         return cvMat2QImage(frame);
     }
 
-//    //turn around the mat
-//    for(int i=0;i<frame.cols/2;i++)
-//    {
-
-//        Mat temp =frame.col(i).clone();
-//        frame.col(frame.cols-1-i).copyTo(frame.col(i));
-//        temp.copyTo(frame.col(frame.cols-1-i));
-//    }
 
 	for( size_t i = 0; i < faces.size(); i++ )
 	{
+
+        //Face
+
 		Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
 		ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
 
-
-
-
 		//flag,indicates whether two eyes and one mouth both detected
-		bool flag =true;
-    
+		bool flag =true;    
+
+
+        //Eyes
+
 		Rect upper =Rect(faces[i].x,faces[i].y,faces[i].width,faces[i].height/2);
-		Mat  upperFaceROI =frame_gray(upper);
-	
-		std::vector<Rect> eyes;
-	
+		Mat  upperFaceROI =frame_gray(upper);	
+		std::vector<Rect> eyes;	
 		//-- In each face, detect eyes
 		eyes_cascade.detectMultiScale( upperFaceROI, eyes, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
 		if(eyes.size()==2)
 		{
 			for( size_t j = 0; j <2; j++ )
 			{
 				Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
 				int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
-				circle( frame, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );
-				//addText(frame,positionStr(center),center,font);
+				circle( frame, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );				
 				putText(frame,positionStr(center),center,1,1.0,Scalar(255,255,0));
 			}	
 		}
@@ -153,14 +156,15 @@ QImage detect()
 			flag =false;
 		}
 
+
+
+
+        //Mouth
+
 		Rect lower =Rect(faces[i].x+faces[i].width/4,faces[i].y+faces[i].height*3/4,faces[i].width/2,faces[i].height/4);
-		Mat  lowerFaceROI =frame_gray(lower);
-
-		rectangle(frame,lower,Scalar(128,0,0));
-		std::vector<Rect> mouthRecs;
-	
+		Mat  lowerFaceROI =frame_gray(lower);		
+		std::vector<Rect> mouthRecs;	
 		mouth_cascade.detectMultiScale( lowerFaceROI, mouthRecs, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(10, 10) );
-
 		if(mouthRecs.size()>=1)
 		{
 			Point center( faces[i].x+faces[i].width/4 + mouthRecs[0].x + mouthRecs[0].width*0.5, faces[i].y+faces[i].height*3/4+ mouthRecs[0].y + mouthRecs[0].height*0.5 );
@@ -174,8 +178,12 @@ QImage detect()
 		{
 			flag =false;
 		}
+
+
+
 		//draw the triangle  (two eyes , one  mouth),and judge face posture.
-		if(flag)
+
+        if(flag)
 		{
 			Point x1( faces[i].x + eyes[0].x + eyes[0].width*0.5, faces[i].y + eyes[0].y + eyes[0].height*0.5 );
 			Point x2( faces[i].x + eyes[1].x + eyes[1].width*0.5, faces[i].y + eyes[1].y + eyes[1].height*0.5 );
@@ -199,8 +207,9 @@ QImage detect()
 
 	}
 
-    //show what you got
-    //imshow( window_name, frame );
+
+
+
     return cvMat2QImage(frame);
 
 }

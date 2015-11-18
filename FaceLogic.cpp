@@ -9,9 +9,7 @@ QList<Point> FaceLogic::normal =QList<Point>();
 
 bool FaceLogic::isInitialized()
 {
-    qDebug() << "Enter isInitialized";
-    std::ifstream file("position.txt");
-    qDebug() << "Leave isInitialized";
+    std::ifstream file("position.txt");   
 	return file;
 }
 

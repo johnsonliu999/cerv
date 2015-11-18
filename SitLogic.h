@@ -11,10 +11,10 @@ class SitLogic
 public:
     SitLogic();
 
-    static  QList<CPredictor::eSitType> getSitType(){return stType;}
+    static  QList<CPredictor::eSitType> getSitType();
     static void init();
     static void readOnce();
-    static CPredictor::eSitType getAverageType(){return stType.at(0);}
+    static CPredictor::eSitType getAverageType();
     static  QString fetchJudgedMessage(CPredictor::eSitType sitType);
 
 private:

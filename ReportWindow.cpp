@@ -1,7 +1,7 @@
 #include "ReportWindow.h"
 #include "ui_ReportWindow.h"
 #include <QStandardItemModel>
-#include "capture.h"
+
 ReportWindow::ReportWindow( QList<Log>& reportSet,QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ReportWindow)
@@ -17,12 +17,12 @@ ReportWindow::~ReportWindow()
     delete ui;
 }
 
-void ReportWindow::setTable(QList<Log> reportSet)
+void ReportWindow::setTable(QList<Log>& reportSet)
 {
     QStandardItemModel  *model = new QStandardItemModel();
 
-    model->setColumnCount(4);
-
+    //set model
+    model->setColumnCount(6);
     model->setHeaderData(0,Qt::Horizontal,QString::fromLocal8Bit("Index"));
     model->setHeaderData(1,Qt::Horizontal,QString::fromLocal8Bit("Face Type"));
     model->setHeaderData(2,Qt::Horizontal,QString::fromLocal8Bit("Sit Type"));
@@ -30,16 +30,9 @@ void ReportWindow::setTable(QList<Log> reportSet)
     model->setHeaderData(4,Qt::Horizontal,QString::fromLocal8Bit("End_Time"));
     model->setHeaderData(5,Qt::Horizontal,QString::fromLocal8Bit("Duration(sec)"));
 
-
-
+    //set tableView
     ui->tableView->setModel(model);
-
-    //表头信息显示居左
-
     ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-
-    //设置列宽不可变
-
     ui->tableView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
     ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
     ui->tableView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
@@ -54,19 +47,13 @@ void ReportWindow::setTable(QList<Log> reportSet)
     ui->tableView->setColumnWidth(4,102);
     ui->tableView->setColumnWidth(5,102);
 
-    //注：在进行表格设置时必须是“ui->tableView->setModel(model);”在前，属性具体设置在后，
 
-    // 反之则设置不会生效。如上述代码所示。
-
-    // 三、添加行（添加三行一样的信息）：
+    // add data
      for(int i = 0; i < reportSet.size(); i++)
      {
          Log log =reportSet[i];
-
-         model->setItem(i,0,new QStandardItem(log.id));
-            //设置字符颜色
-         model->item(i,0)->setForeground(QBrush(QColor(255, 0, 0)));
-            //设置字符位置
+         model->setItem(i,0,new QStandardItem(log.id));          
+         model->item(i,0)->setForeground(QBrush(QColor(255, 0, 0)));        
          model->item(i,0)->setTextAlignment(Qt::AlignCenter);
          model->setItem(i,1,new QStandardItem(log.face_type));
          model->setItem(i,2,new QStandardItem(log.sit_type));
@@ -74,10 +61,5 @@ void ReportWindow::setTable(QList<Log> reportSet)
          model->setItem(i,4,new QStandardItem(log.end_t.toString("hh:mm:ss")));
          model->setItem(i,5,new QStandardItem(log.start_t.secsTo(log.end_t)));
      }
-    //四、删除行：
-    //x是指定删除哪一行
-    //model->removeRow(x);
-    //删除所有行
-    //model->removeRows(0,model->rowCount());
 
 }

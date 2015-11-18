@@ -2,15 +2,12 @@
 #include "DAO.h"
 #include "cdatabase.h"
 
-//qt sql
-#include <QSqlQuery>
-#include <QVariant>
 
 
 
 
 
-void DAO::insert(Log &log)
+void DAO::insert(const Log &log)
 {
      QSqlDatabase db =CDatabase::getDB();
      //do some sql operation
@@ -36,18 +33,19 @@ void DAO::insert(Log &log)
 
 }
 
-QList<Log> DAO::query(QDate &date, User &user)
+QList<Log> DAO::query(const QDate &date,const User &user)
 {
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
 
     QSqlQuery query;
-    query.prepare("select * from log where date=:date and userid=:userid");
-    query.bindValue(":date",date);
-    query.bindValue(":userid",user.userid);
-    query.executedQuery();
+    query.prepare("select * from log where date=? and userid=?");
+    query.addBindValue(date);
+    query.addBindValue(user.userid);
+    query.exec();
 
     QList<Log>  logs;
+
     while (query.next()) {
 
         Log log;
@@ -59,7 +57,7 @@ QList<Log> DAO::query(QDate &date, User &user)
         log.sit_type  =query.value("sit_type").toString();
         //log.user      =user;
 
-        logs.insert(logs.size(),log);
+        logs.push_back(log);
     }
 
 
@@ -70,7 +68,7 @@ QList<Log> DAO::query(QDate &date, User &user)
 
 }
 
-void DAO::insert(User &user)
+void DAO::insert(const User &user)
 {
     if(query(user.username))
         throw QString("user already exist");
@@ -85,13 +83,13 @@ void DAO::insert(User &user)
     db.close();
 }
 
-bool DAO::query(QString &username)
+bool DAO::query(const QString& username)
 {
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
     QSqlQuery query;
-    query.prepare("select * from user where username=:username");
-    query.bindValue(":username",username);
+    query.prepare("select * from user where username=?");
+    query.addBindValue(username);
     query.exec();
 
     if(query.next())
@@ -102,7 +100,7 @@ bool DAO::query(QString &username)
 
 }
 
-void DAO::insert(Predictor &predictor)
+void DAO::insert(const Predictor &predictor)
 {
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
@@ -118,7 +116,7 @@ void DAO::insert(Predictor &predictor)
     db.close();
 }
 
-Predictor DAO::query(User &user)
+Predictor DAO::query(const User &user)
 {
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation

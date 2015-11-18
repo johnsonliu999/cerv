@@ -22,7 +22,7 @@ private:
     Ui::ReportWindow *ui;
 
 
-    void setTable(QList<Log>);
+    void setTable(QList<Log> &);
 };
 
 #endif // REPORTWINDOW_H
