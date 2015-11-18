@@ -1,35 +1,30 @@
 #include "SitLogic.h"
 
-
-
-
 QList<CPredictor::eSitType> SitLogic::stType = QList<CPredictor::eSitType>();
 CPredictor* SitLogic::predictor =CPredictor::getPredictor();
 CSerialReader* SitLogic::reader =CSerialReader::getReader();
 
-
-
-
+/**
+ * @brief SitLogic::init
+ * open the bluetooth serial port
+ * and connect the slave bluetooth device
+ */
 void SitLogic::init()
 {
-
-    if(!reader->OpenSerial())
+    if(!reader->OpenSerial(BT_ID))
     {
         qDebug() << "Cannot open serial port";
-
     }
     qDebug() << "Open serial port succeed";
 
-    if(!reader->ConnectDevice())
+    if(!reader->ConnectDevice(BT_ADDR))
     {
         qDebug() << "Cannot connect device";
-
     }
     qDebug() << "Connect device succeed";
-
-
-
+    qDebug() << "Init seat finished";
 }
+
 
 void SitLogic::readOnce()
 {
@@ -55,8 +50,5 @@ QString SitLogic::fetchJudgedMessage(CPredictor::eSitType sitType)
         break;
     case CPredictor::FORWARD:
         return "Forward";
-
     }
-
-
 }

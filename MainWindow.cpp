@@ -1,11 +1,9 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
-
 #include <QMessageBox>
 #include "ReportWindow.h"
 #include <QTime>
-
 
 //data
 #include "Log.h"

@@ -156,14 +156,14 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
  *
  * @return ：打开成功返回true，否则false
  */
-bool CSerialReader::OpenSerial()
+bool CSerialReader::OpenSerial(int nProductID)
 {
     QList<QSerialPortInfo> iSList = QSerialPortInfo::availablePorts();
 
     int index = -1;
     for (int i = 0; i < iSList.size(); i++)
     {
-        if (8963 == iSList[i].productIdentifier())
+        if (nProductID == iSList[i].productIdentifier())
         {
             index = i;
             break;
