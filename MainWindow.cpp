@@ -163,7 +163,9 @@ void MainWindow::on_pushButton_4_clicked()
         try
         {
             openCamera();
+            qDebug() << "Start seat init";
             SitLogic::init();
+            qDebug() << "Finish seat init";
         }catch(const char* msg)
         {
             QMessageBox::information(this,"error",tr(msg));

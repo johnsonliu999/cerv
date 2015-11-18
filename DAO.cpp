@@ -2,11 +2,6 @@
 #include "DAO.h"
 #include "cdatabase.h"
 
-
-
-
-
-
 void DAO::insert(const Log &log)
 {
      QSqlDatabase db =CDatabase::getDB();
@@ -24,9 +19,6 @@ void DAO::insert(const Log &log)
      query.bindValue(":userid",log.user.userid);
 
      query.exec();
-
-
-
 
      db.commit();
      db.close();
