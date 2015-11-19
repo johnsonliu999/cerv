@@ -9,8 +9,13 @@
 */
 struct User
 {
+<<<<<<< HEAD
 public:
     explicit User(int _userid=0,QString _username="")
+=======
+public:
+    User(int _userid=0,QString _username="")
+>>>>>>> update
         :userid(_userid),username(_username){}
     int userid;
     QString username;
