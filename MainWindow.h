@@ -34,9 +34,6 @@ private slots:
     void seatProcess();
     /**********************/
 
-public slots:
-    void setSession(const QString userNameString);
-
 private:
     Ui::MainWindow *ui;
     QTimer* timer;

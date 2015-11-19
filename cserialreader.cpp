@@ -155,7 +155,7 @@ bool CSerialReader::OpenSerial(int nProductID)
 
     if (m_iPort.isOpen())
     {
-        return;
+        return true;
     }
 
     if (false == m_iPort.open(QSerialPort::ReadWrite))

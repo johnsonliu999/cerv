@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include "DAO.h"
 #include "User.h"
+#include "MySession.h"
 
 LogDialog::LogDialog(QWidget *parent) :
     QDialog(parent),
@@ -23,6 +24,8 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
         try{
             if (DAO::query(ui->nameLineEdit->text()))
             {
+                Session::user.userid = 1; // to be decided
+                Session::user.username = ui->nameLineEdit->text();
                 accept();
             }
             else
