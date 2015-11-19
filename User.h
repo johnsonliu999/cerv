@@ -14,8 +14,6 @@ public:
         :userid(_userid),username(_username){}
     int userid;
     QString username;
-
-
 };
 
 #endif // USER_H

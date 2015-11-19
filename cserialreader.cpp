@@ -22,29 +22,26 @@ CSerialReader::CSerialReader()
  * @param cDevAddr：目标地址，目标需设置为从模式
  * @return：成功为true，失败false
  */
-bool CSerialReader::ConnectDevice(const QString &cDevAddr)
+void CSerialReader::ConnectDevice(const QString &cDevAddr)
 {
     qDebug() << "Going to connect device at " + cDevAddr;
 
     if (isConnected())
     {
-        qDebug() << "Already connected";
-        return true;
+        return;
     }
 
     /*** send inquery device ***/
-    qDebug() << "Start inquery and this will last several seconds(at least 5s)";
+
     if (-1 == m_iPort.write("at+inq\r\n"))
     {
-        qDebug() << "Error write";
-        return false;
+        throw "connect serial port error";
     }
 
     qDebug() << "Wait for inquery response data";
     if (-1 == m_iPort.waitForReadyRead(2000))
     {
-        qDebug() << "No inquery info returned in 2s";
-        return false;
+        throw "connect serial port error";
     }
 
     QByteArray iByteArray = "";
@@ -57,15 +54,13 @@ bool CSerialReader::ConnectDevice(const QString &cDevAddr)
 
     if (!iByteArray.contains("INQE"))
     {
-        qDebug() << "No inquery info returned";
-        return false;
+        throw "connect serial port error";
     }
 
-    qDebug() << "Received: " << iByteArray;
+    //qDebug() << "Received: " << iByteArray;
     if (!iByteArray.contains(cDevAddr.toLatin1()))
     {
-        qDebug() << "Device not found";
-        return false;
+        throw "Device not found";
     }
 
 
@@ -74,32 +69,13 @@ bool CSerialReader::ConnectDevice(const QString &cDevAddr)
     // try to connect the device
     if (-1 == m_iPort.write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
     {
-        qDebug() << "Error write conna";
-        return false;
+       throw "Error write conna";
     }
 
     qDebug() << "Wait for receive cona info";
     if (-1 == m_iPort.waitForReadyRead(2000))
-        return false;
+        throw "long wait";
 
-    return true;
-
-    // may missed the connected info, cause not stop loop
-    /* iByteArray = "";
-    while (m_iPort.waitForReadyRead(1000))
-    {
-        iByteArray += m_iPort.read(100);
-        if (iByteArray.contains("connected"))
-        {
-            qDebug() << "Connect success";
-            qDebug() << "Returned info: " << iByteArray;
-            return true;
-        }
-    }
-
-    qDebug() << "<connected> not detected, connect failed";
-    return false;
-    */
 }
 
 /**
@@ -109,8 +85,7 @@ bool CSerialReader::ConnectDevice(const QString &cDevAddr)
  * @return : Connected-true else false
  */
 bool CSerialReader::isConnected()
-{
-    qDebug() << "In isConnected";
+{    
     if(m_iPort.waitForReadyRead(2000))
         return true;
     else
@@ -172,8 +147,7 @@ bool CSerialReader::OpenSerial(int nProductID)
 
     if (index == -1)
     {
-        qDebug() << "serial port not found";
-        return false;
+        throw "serial port not found";
     }
 
 
@@ -181,18 +155,16 @@ bool CSerialReader::OpenSerial(int nProductID)
 
     if (m_iPort.isOpen())
     {
-        qDebug() << "Port already opened";
-        return true;
+        return;
     }
 
     if (false == m_iPort.open(QSerialPort::ReadWrite))
     {
-        qDebug() << "Open serial port failed";
-        return false;
+        throw "Open serial port failed";
     }
 
     qDebug() << "Open serial port succeed";
-    return true;
+
 }
 
 /**
@@ -203,8 +175,8 @@ bool CSerialReader::OpenSerial(int nProductID)
  */
 void CSerialReader::CloseSerial()
 {
-    qDebug() << "Close serial port";
-    m_iPort.close();
+    if(m_iPort.isOpen())
+       m_iPort.close();
 }
 
 

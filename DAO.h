@@ -20,7 +20,6 @@ class DAO
 public:
     static void insert(const Log& log);
     static  QList<Log> query(const QDate& date,const User& user);
-
     static void insert(const User& user);
     static bool query(const QString& username);
 	
