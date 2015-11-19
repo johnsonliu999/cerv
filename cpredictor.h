@@ -14,16 +14,9 @@ using namespace cv::ml;
         先获取单例，调用isTrained（）判断可用性。
         若未训练，则需collectData（），data需要五个坐姿的数据，然后train（），就可以用了-------------可以考虑存盘 save2DB().
         若已训练，直接用
-
-
      唯一有用的接口： predict（）
 
 */
-
-
-
-
-
 class CPredictor
 {
 public:
@@ -36,6 +29,7 @@ public:
     void save2DB();
     void train();
     bool isTrained();
+    void beginReceiveData();
 
     void CollectData(eSitType type);
 

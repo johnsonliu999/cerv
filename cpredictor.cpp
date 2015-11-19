@@ -1,4 +1,5 @@
 #include "cpredictor.h"
+#include <QDebug>
 
 
 //dao model  session
