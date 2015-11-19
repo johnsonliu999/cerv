@@ -52,7 +52,6 @@ const QSqlDatabase CDatabase::getDB()
 
 void CDatabase::CloseDB()
 {
-
     db.close();
 }
 

@@ -23,11 +23,11 @@ public:
     static  QList<Log> query(const QDate& date,const User& user);
 
 
-    static void insert(User& user);
-    static bool query(QString& username);
+    static void insert(const User& user);
+    static bool query(const QString& username);
 	
-    static void insert(Predictor& predictor);
-    static Predictor query(User& user);
+    static void insert(const Predictor& predictor);
+    static Predictor query(const User& user);
 };
 
 #endif // DAO_H
