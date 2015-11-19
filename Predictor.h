@@ -13,7 +13,7 @@ struct  Predictor
    int id;
    QByteArray xml;
    User user;
-
+   explicit Predictor(int _id =0):id(_id){}
 };
 #endif // PREDICTOR
 

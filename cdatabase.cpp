@@ -16,8 +16,8 @@ void CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &c
     db.setPassword(cPassword);
     if (db.open())
         qDebug() << "Connect database succeed";
-
-    throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
+    else
+        throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
 }
 
 const QSqlDatabase CDatabase::getDB()

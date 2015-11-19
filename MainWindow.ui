@@ -593,7 +593,7 @@
      <x>0</x>
      <y>0</y>
      <width>855</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -612,6 +612,7 @@
     <addaction name="action2_edit"/>
     <addaction name="actionAdd"/>
     <addaction name="actionSwitchUser"/>
+    <addaction name="actionSit_Retrain"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -675,17 +676,22 @@
   </action>
   <action name="action2_edit">
    <property name="text">
-    <string>编辑</string>
+    <string>Login</string>
    </property>
   </action>
   <action name="actionAdd">
    <property name="text">
-    <string>添加新用户</string>
+    <string>Register</string>
    </property>
   </action>
   <action name="actionSwitchUser">
    <property name="text">
-    <string>切换用户</string>
+    <string>Face Retrain</string>
+   </property>
+  </action>
+  <action name="actionSit_Retrain">
+   <property name="text">
+    <string>Sit Retrain</string>
    </property>
   </action>
  </widget>

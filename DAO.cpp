@@ -62,20 +62,21 @@ QList<Log> DAO::query(const QDate &date,const User &user)
 
 void DAO::insert(const User &user)
 {
-    if(query(user.username))
+    int id;
+    if(query(user.username,id))
         throw QString("user already exist");
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
     db.transaction();
-    QSqlQuery query;
-    query.prepare("insert into user(username) values(:username)");
-    query.bindValue(":username",user.username);
-    query.exec();
+    QSqlQuery q;
+    q.prepare("insert into user(username) values(:username)");
+    q.bindValue(":username",user.username);
+    q.exec();
     db.commit();
     db.close();
 }
 
-bool DAO::query(const QString& username)
+bool DAO::query(const QString& username, int &id)
 {
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
@@ -85,9 +86,16 @@ bool DAO::query(const QString& username)
     query.exec();
 
     if(query.next())
+    {
+        id =query.value("id").toInt();
+        db.close();
         return true;
+    }
     else
+    {
+        db.close();
         return false;
+    }
 
 
 }

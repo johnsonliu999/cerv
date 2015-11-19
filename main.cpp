@@ -6,13 +6,7 @@
 #include "Log.h"
 #include "DAO.h"
 
-void testCon()
-{
-    if(CDatabase::getDB().isOpen())
-        return;
-    else
-        throw "db can not open";
-}
+
 
 
 
