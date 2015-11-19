@@ -7,7 +7,7 @@ CDatabase::CDatabase()
 
 }
 
-bool CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &cHostName, const QString &cDatabaseName, const QString &cUserName, const QString &cPassword)
+void CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &cHostName, const QString &cDatabaseName, const QString &cUserName, const QString &cPassword)
 {
     db = QSqlDatabase::addDatabase(cDatabaseType);
     db.setHostName(cHostName);
@@ -15,19 +15,13 @@ bool CDatabase::__ConnectDatabase(const QString &cDatabaseType, const QString &c
     db.setUserName(cUserName);
     db.setPassword(cPassword);
     if (db.open())
-    {
         qDebug() << "Connect database succeed";
-        return true;
-    }
 
-    qDebug() << "Connect database failed, DB cannot use";
-    qDebug() << db.lastError().text();
-    return false;
+    throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
 }
 
 const QSqlDatabase CDatabase::getDB()
 {
-
     if (db.isValid())
     {
         if (db.isOpen() || db.open())
@@ -35,9 +29,7 @@ const QSqlDatabase CDatabase::getDB()
             qDebug() << "Connect database succeed";
             return db;
         }
-
-        qDebug() << "Connect database failed, DB cannot use";
-        qDebug() << db.lastError().text();
+        throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
     }
     else
     {
@@ -47,7 +39,6 @@ const QSqlDatabase CDatabase::getDB()
        db = QSqlDatabase::database();
        return db;
     }
-
 }
 
 void CDatabase::CloseDB()

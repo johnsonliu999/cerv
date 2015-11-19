@@ -12,7 +12,7 @@ public:
 private:
     CDatabase();
     static QSqlDatabase db;
-    static bool __ConnectDatabase(const QString & cDatabaseType = "QMYSQL", const QString & cHostName = "localhost", const QString & cDatabaseName = "neck", const QString & cUserName = "root", const QString & cPassword = "19940116");
+    static void __ConnectDatabase(const QString & cDatabaseType = "QMYSQL", const QString & cHostName = "localhost", const QString & cDatabaseName = "neck", const QString & cUserName = "root", const QString & cPassword = "");
 };
 
 #endif // CDATABASE_H
