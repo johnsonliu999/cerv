@@ -5,6 +5,7 @@
 #include "User.h"
 #include "MySession.h"
 #include <QDebug>
+#include "registerdialog.h"
 
 LogDialog::LogDialog(QWidget *parent) :
     QDialog(parent),
@@ -39,5 +40,16 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
     }
     else if(ui->buttonBox->button(QDialogButtonBox::Cancel) == (QPushButton*)button)
     {
+        reject();
+    }
+}
+
+void LogDialog::on_newUserLabel_linkActivated(const QString &link)
+{
+    registerDialog r;
+    r.show();
+    if (r.exec() == QDialog::Accepted)
+    {
+        QMessageBox::information(this, "Register succeed", "Congratulations, new user!", QMessageBox::Yes);
     }
 }

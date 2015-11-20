@@ -60,11 +60,12 @@ QList<Log> DAO::query(const QDate &date,const User &user)
 
 }
 
-void DAO::insert(const User &user)
+bool DAO::insert(const User &user)
 {
     int id;
     if(query(user.username,id))
         throw QString("user already exist");
+
     QSqlDatabase db =CDatabase::getDB();
     //do some sql operation
     db.transaction();
@@ -74,6 +75,8 @@ void DAO::insert(const User &user)
     q.exec();
     db.commit();
     db.close();
+
+    return true;
 }
 
 bool DAO::query(const QString& username, int &id)

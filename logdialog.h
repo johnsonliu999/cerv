@@ -18,6 +18,7 @@ public:
 
 private slots:
     void on_buttonBox_clicked(QAbstractButton *button);
+    void on_newUserLabel_linkActivated(const QString &link);
 
 private:
     Ui::LogDialog *ui;

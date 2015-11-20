@@ -10,7 +10,7 @@
 struct User
 {
 public:
-    explicit User(int _userid=0,QString _username="")
+    explicit User(QString _username="",int _userid=0)
         :userid(_userid),username(_username){}
     int userid;
     QString username;
