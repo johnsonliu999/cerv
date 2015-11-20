@@ -12,6 +12,7 @@
 #define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 1000
 
 CPredictor* CPredictor::m_pPredictor = NULL;
+int CPredictor::nSitTypeNumber = 5;
 
 
 
@@ -61,6 +62,23 @@ CPredictor *CPredictor::getPredictor()
     if(m_pPredictor ==NULL)
         m_pPredictor =new CPredictor();
     return m_pPredictor;
+}
+
+const QString CPredictor::getSitString(int index)
+{
+    switch ((CPredictor::eSitType)index)
+    {
+    case CPredictor::NORMAL:
+        return "normal";
+    case CPredictor::BACKWARD:
+        return "backward";
+    case CPredictor::FORWARD:
+        return "forward";
+    case CPredictor::RIGHTWARD:
+        return "rightward";
+    case CPredictor::LEFTWARD:
+        return "leftward";
+    }
 }
 
 /*/**

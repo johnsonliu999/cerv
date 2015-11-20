@@ -34,6 +34,8 @@ private slots:
     void seatProcess();
     /**********************/
 
+    void on_actionTrain_triggered();
+
 private:
     Ui::MainWindow *ui;
     QTimer* timer;

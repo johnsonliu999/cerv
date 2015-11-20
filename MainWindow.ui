@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>855</width>
-    <height>624</height>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -560,32 +560,6 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="Line" name="line_4">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>360</y>
-      <width>851</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QPlainTextEdit" name="seatRawDataEdit">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>380</y>
-      <width>831</width>
-      <height>191</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -593,14 +567,14 @@
      <x>0</x>
      <y>0</y>
      <width>855</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
      <string>开始</string>
     </property>
-    <addaction name="action1"/>
+    <addaction name="actionTrain"/>
     <addaction name="action2"/>
     <addaction name="action3"/>
     <addaction name="action4"/>
@@ -654,9 +628,9 @@
     <string/>
    </property>
   </widget>
-  <action name="action1">
+  <action name="actionTrain">
    <property name="text">
-    <string>1</string>
+    <string>train</string>
    </property>
   </action>
   <action name="action2">

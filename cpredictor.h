@@ -23,10 +23,13 @@ using namespace cv::ml;
 class CPredictor
 {
 public:
-    enum eSitType {NORMAL=0, BACKWARD=6, FORWARD=7, RIGHTWARD=12, LEFTWARD=13};
+    enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
+    static int nSitTypeNumber;
 
 public:
     static CPredictor* getPredictor();
+    static const QString getSitString(int index);
+
     eSitType Predict(const QList<int> & iPredictData);
     void loadFromDB(const User &user);
     void save2DB();

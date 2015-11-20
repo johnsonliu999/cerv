@@ -14,7 +14,7 @@
 //face
 #include "capture.h"
 #include "FaceLogic.h"
-
+#include "collectdialog.h"
 
 
 
@@ -183,4 +183,11 @@ void MainWindow::on_pushButton_4_clicked()
         timer->stop();
         ui->pushButton_4->setText("Start");
     }
+}
+
+void MainWindow::on_actionTrain_triggered()
+{
+    collectDialog c;
+    c.show();
+    c.exec();
 }
