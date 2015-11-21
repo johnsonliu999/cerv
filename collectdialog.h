@@ -16,7 +16,8 @@ public:
     ~collectDialog();
 
 private slots:
-    void on_buttonBox_accepted();
+
+    void on_buttonStart_clicked();
 
 private:
     Ui::collectDialog *ui;

@@ -81,61 +81,6 @@ const QString CPredictor::getSitString(int index)
     }
 }
 
-/*/**
- * @brief CPredictor::__PrepareData
- * 准备好训练数据
- *
- * @param cUserName：用户的名字即表名
- * @param iData：用来装训练数据的矩阵
- * @param iLabel：用来装分类的矩阵，1列
- * @param iConnection：数据库连接实体
- * @return：true表示成功，false表示失败
- **/
-//bool CPredictor::__PrepareData(const QString & cUserName, Mat & iData, Mat & iLabel, QSqlDatabase iConnection)
-//{
-//    // 构建查询语句
-//    QString cSql = "select * from " + cUserName + " where kind = :id order by dataid limit " + QString::number(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS);
-
-//    int gnClass[5] = {NORMAL, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
-
-//    // 准备查询接口
-//    QSqlQuery iQuery(iConnection);
-//    if (false == iQuery.prepare(cSql))
-//    {
-//        qDebug() << "Query prepare failed";
-//        qDebug() << iQuery.lastError().text();
-//        return false;
-//    }
-
-//    // 循环分为3层
-//    // i表示有5个class
-//    // j表示每个class所抽取的样本数量
-//    // k表示每个样本的属性数量
-//    for (int i = 0; i < 5; i++)
-//    {
-//        iQuery.bindValue(":id", gnClass[i]);
-//        if (false == iQuery.exec())
-//        {
-//            qDebug() << "Exec error";
-//            qDebug() << iQuery.lastError().text();
-//            return false;
-//        }
-//        for (int j = 0; j < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS; j++)
-//        {
-//            iQuery.next();
-//            for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
-//            {
-//                // 读取数据，因为第一列为dataid所以value(j+1)
-//                // 加上NUMBER_OF_TRAINING_SAMPLE_PER_CLASS因为每个class取样本的数量
-//                iData.at<float>(j+NUMBER_OF_TRAINING_SAMPLE_PER_CLASS*i, k) = static_cast<float>(iQuery.value(k+1).toFloat());
-//            }
-//            iLabel.at<int>(j+NUMBER_OF_TRAINING_SAMPLE_PER_CLASS*i, 0) = static_cast<int>(iQuery.value(ATTRIBUTE_PRE_SAMPLE+1).toInt());
-//        }
-//    }
-//    qDebug() << "Prepare data finished";
-//    return true;
-//}
-
 
 /**
  * @brief CPredictor::__BuildRTrees
@@ -187,7 +132,7 @@ void CPredictor::CollectDataFromSerialPort(eSitType type)
 {
 
     CSerialReader* pReader = CSerialReader::getReader();
-    pReader->OpenSerial();
+    pReader->OpenSerial(ARDUINO_ID);
     pReader->ConnectDevice();
 
     QList< QList<int> > iDataListList;
@@ -209,9 +154,8 @@ void CPredictor::CollectDataFromSerialPort(eSitType type)
             }
             iLabel.at<int>(j+nTotalNumber, 0) = static_cast<int>(type);
         }
-
         nTotalNumber += iDataListList.size();
-
+        qDebug() << "collected" << nTotalNumber;
     }
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
 

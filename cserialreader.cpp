@@ -35,13 +35,13 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 
     if (-1 == m_iPort.write("at+inq\r\n"))
     {
-        throw "connect serial port error";
+        throw QString("connect serial port error");
     }
 
     qDebug() << "Wait for inquery response data";
     if (-1 == m_iPort.waitForReadyRead(2000))
     {
-        throw "connect serial port error";
+        throw QString("connect serial port error");
     }
 
     QByteArray iByteArray = "";
@@ -54,13 +54,13 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 
     if (!iByteArray.contains("INQE"))
     {
-        throw "connect serial port error";
+        throw QString("connect serial port error");
     }
 
     //qDebug() << "Received: " << iByteArray;
     if (!iByteArray.contains(cDevAddr.toLatin1()))
     {
-        throw "Device not found";
+        throw QString("Device not found");
     }
 
 
@@ -69,12 +69,12 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     // try to connect the device
     if (-1 == m_iPort.write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
     {
-       throw "Error write conna";
+       throw QString("Error write conna");
     }
 
     qDebug() << "Wait for receive cona info";
     if (-1 == m_iPort.waitForReadyRead(2000))
-        throw "long wait";
+        throw QString("long wait");
 
 }
 
