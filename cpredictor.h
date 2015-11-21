@@ -4,6 +4,7 @@
 #include <QList>
 #include <cv.h>
 #include <ml.h>
+#include <QObject>
 
 #include "User.h"
 
@@ -20,8 +21,13 @@ using namespace cv::ml;
      唯一有用的接口： predict（）
 
 */
-class CPredictor
+class CPredictor : public QObject
 {
+    Q_OBJECT
+
+signals:
+    void percentChanged(int percent);
+
 public:
     enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
     static int nSitTypeNumber;
@@ -35,7 +41,7 @@ public:
     void save2DB();
     void train();
     bool isTrained();
-    void beginReceiveData();
+    // void beginReceiveData();
 
     void CollectDataFromSerialPort(eSitType type);
     void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
@@ -46,6 +52,7 @@ private:
 
     static CPredictor* m_pPredictor;
     CPredictor();
+    ~CPredictor();
 
 
 

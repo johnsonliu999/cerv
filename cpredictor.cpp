@@ -1,11 +1,14 @@
 #include "cpredictor.h"
 #include <QDebug>
+#include <QThread>
 
 
 //dao model  session
 #include "Predictor.h"
 #include "DAO.h"
 #include "MySession.h"
+
+#include "cpredictor.moc"
 
 
 #define ATTRIBUTE_PRE_SAMPLE 20
@@ -21,6 +24,11 @@ int CPredictor::nSitTypeNumber = 5;
 */
 CPredictor::CPredictor():iData(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1),
     iLabel(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1)
+{
+
+}
+
+CPredictor::~CPredictor()
 {
 
 }
@@ -128,6 +136,17 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 
 #include "cserialreader.h"
 #include "SitLogic.h"
+
+/**
+ * @brief CPredictor::CollectDataFromSerialPort
+ * collect a specific sit type with number of NUMBER_OF_TRAINING_SAMPLE_PER_CLASS
+ * since the matrix start with 0, so we can see many details of marginal 1
+ * be careful with the bound
+ *
+ * we use the type as int to set the start offset of the storage
+ *
+ * @param type
+ */
 void CPredictor::CollectDataFromSerialPort(eSitType type)
 {
 
@@ -141,21 +160,27 @@ void CPredictor::CollectDataFromSerialPort(eSitType type)
     int nTotalNumber = 0;
 
     qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
-    while (nTotalNumber < 1000)
+    // since the matrix start with 0
+    while (nTotalNumber + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
         iDataListList = pReader->ReadSerial();
 
+        int size = iDataListList.size();
+        if (nTotalNumber + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
+            size = NUMBER_OF_TRAINING_SAMPLE_PER_CLASS - nTotalNumber - 1;
 
-        for (int j = 0; j < iDataListList.size(); j++)
+        for (int j = 0; j < size; j++)
         {
             for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
             {
-                iData.at<float>(j+nTotalNumber, k) = static_cast<float>(iDataListList[j][k]);
+                iData.at<float>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, k) = static_cast<float>(iDataListList[j][k]);
             }
-            iLabel.at<int>(j+nTotalNumber, 0) = static_cast<int>(type);
+            iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, 0) = static_cast<int>(type);
         }
         nTotalNumber += iDataListList.size();
         qDebug() << "collected" << nTotalNumber;
+        emit percentChanged((nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS);
+        QThread::sleep(5);
     }
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
 

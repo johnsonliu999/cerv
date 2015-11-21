@@ -3,12 +3,16 @@
 #include "cpredictor.h"
 #include <QMessageBox>
 #include <QDebug>
+#include <QThread>
 
 collectDialog::collectDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::collectDialog)
 {
     ui->setupUi(this);
+    CPredictor* predictor = CPredictor::getPredictor();
+
+    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
 }
 
 collectDialog::~collectDialog()
@@ -19,6 +23,8 @@ collectDialog::~collectDialog()
 void collectDialog::on_buttonStart_clicked()
 {
     CPredictor* predictor = CPredictor::getPredictor();
+    predictor->moveToThread(&collectThread);
+    collectThread.start();
     try
     {
         for (int i = 0; i < CPredictor::nSitTypeNumber; i++)
@@ -30,5 +36,9 @@ void collectDialog::on_buttonStart_clicked()
     {
         QMessageBox::critical(this, "Collect error", e, QMessageBox::Ok);
     }
+}
 
+void collectDialog::setPercent(int percent)
+{
+    ui->progressBar->setValue(percent);
 }
