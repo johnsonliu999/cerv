@@ -21,12 +21,9 @@ using namespace cv::ml;
      唯一有用的接口： predict（）
 
 */
-class CPredictor : public QObject
+class CPredictor:public QObject
 {
     Q_OBJECT
-
-signals:
-    void percentChanged(int percent);
 
 public:
     enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
@@ -54,7 +51,8 @@ private:
     CPredictor();
     ~CPredictor();
 
-
+signals:
+    void percentChanged(int percent);
 
 protected:
 
