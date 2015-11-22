@@ -5,6 +5,7 @@
 #include <cv.h>
 #include <ml.h>
 #include <QObject>
+#include <QThread>
 
 #include "User.h"
 
@@ -24,7 +25,8 @@ using namespace cv::ml;
 class CPredictor:public QObject
 {
     Q_OBJECT
-
+public:
+    QThread collectThread;
 public:
     enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
     static int nSitTypeNumber;
@@ -39,8 +41,8 @@ public:
     void train();
     bool isTrained();
     // void beginReceiveData();
+    void collectCertainType(eSitType type);
 
-    void CollectDataFromSerialPort(eSitType type);
     void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
 private:   
     Ptr<RTrees> pTrees;
@@ -53,6 +55,11 @@ private:
 
 signals:
     void percentChanged(int percent);
+    void information(const QString title, const QString content);
+    void critial(const QString title, const QString content);
+
+public slots:
+    void pollCollectData();
 
 protected:
 

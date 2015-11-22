@@ -146,7 +146,7 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  *
  * @param type
  */
-void CPredictor::CollectDataFromSerialPort(eSitType type)
+void CPredictor::collectCertainType(eSitType type)
 {
 
     CSerialReader* pReader = CSerialReader::getReader();
@@ -176,9 +176,9 @@ void CPredictor::CollectDataFromSerialPort(eSitType type)
             }
             iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, 0) = static_cast<int>(type);
         }
-        nTotalNumber += iDataListList.size();
+        nTotalNumber += size;
         qDebug() << "collected" << nTotalNumber;
-        emit percentChanged((nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS);
+        emit percentChanged((int)(((float)nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 100));
         QThread::sleep(5);
     }
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
@@ -239,6 +239,22 @@ void CPredictor::train()
 bool CPredictor::isTrained()
 {
     return   pTrees->isTrained();
+}
+
+void CPredictor::pollCollectData()
+{
+    for (int i = 0; i < nSitTypeNumber; i++)
+    {
+        emit information("Collect information", "Going to collect " + getSitString(i) + " data");
+        try{
+            collectCertainType((eSitType)i);
+        }catch (const QString & e)
+        {
+            emit critial("Collect error",e);
+            return ;
+        }
+    }
+    emit information("Collect information", "Finished Collect");
 }
 
 

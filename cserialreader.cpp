@@ -147,7 +147,7 @@ bool CSerialReader::OpenSerial(int nProductID)
 
     if (index == -1)
     {
-        throw "serial port not found";
+        throw QString("serial port not found");
     }
 
 
@@ -160,7 +160,7 @@ bool CSerialReader::OpenSerial(int nProductID)
 
     if (false == m_iPort.open(QSerialPort::ReadWrite))
     {
-        throw "Open serial port failed";
+        throw QString("Open serial port failed");
     }
 
     qDebug() << "Open serial port succeed";

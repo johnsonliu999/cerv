@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QThread>
+#include "cpredictor.h"
 
 namespace Ui {
 class collectDialog;
@@ -16,10 +17,15 @@ public:
     explicit collectDialog(QWidget *parent = 0);
     ~collectDialog();
 
+signals:
+    void startCollect();
+
 private slots:
     void on_buttonStart_clicked();
 public slots:
     void setPercent(int percent);
+    void presentInformation(const QString title, const QString content);
+    void presentCritical(const QString title, const QString content);
 
 private:
     Ui::collectDialog *ui;

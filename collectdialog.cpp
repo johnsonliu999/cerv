@@ -13,7 +13,11 @@ collectDialog::collectDialog(QWidget *parent) :
     CPredictor* predictor = CPredictor::getPredictor();
 
     connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
+    connect(predictor, &CPredictor::critial, this, &collectDialog::presentCritical);
+    connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation);
+    connect(this, &collectDialog::startCollect, predictor, &CPredictor::pollCollectData);
 }
+
 
 collectDialog::~collectDialog()
 {
@@ -23,22 +27,24 @@ collectDialog::~collectDialog()
 void collectDialog::on_buttonStart_clicked()
 {
     CPredictor* predictor = CPredictor::getPredictor();
-    predictor->moveToThread(&collectThread);
-    collectThread.start();
-    try
-    {
-        for (int i = 0; i < CPredictor::nSitTypeNumber; i++)
-        {
-            QMessageBox::information(this, "Collection information", "Going to collect " + CPredictor::getSitString(i) + " data, please keep on", QMessageBox::Ok);
-            predictor->CollectDataFromSerialPort((CPredictor::eSitType)i);
-        }
-    }catch (const QString & e)
-    {
-        QMessageBox::critical(this, "Collect error", e, QMessageBox::Ok);
-    }
+    predictor->moveToThread(&predictor->collectThread);
+    predictor->collectThread.start();
+    emit startCollect();
 }
 
 void collectDialog::setPercent(int percent)
 {
     ui->progressBar->setValue(percent);
 }
+
+void collectDialog::presentInformation(const QString title, const QString content)
+{
+    QMessageBox::information(this, title, content, QMessageBox::Ok);
+}
+
+void collectDialog::presentCritical(const QString title, const QString content)
+{
+    QMessageBox::critical(this, title, content, QMessageBox::Ok);
+}
+
+
