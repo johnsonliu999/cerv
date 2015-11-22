@@ -18,7 +18,8 @@ public:
     ~collectDialog();
 
 signals:
-    void startCollect();
+    void startTrain();
+    void tryLoadModel();
 
 private slots:
     void on_buttonStart_clicked();

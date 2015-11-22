@@ -11,7 +11,7 @@
 #include "moc_cpredictor.cpp"
 
 #define ATTRIBUTE_PRE_SAMPLE 20
-#define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 1000
+#define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 500
 
 CPredictor* CPredictor::m_pPredictor = NULL;
 int CPredictor::nSitTypeNumber = 5;
@@ -120,7 +120,7 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
     }
     else
     {
-        throw "Train failed";
+        throw QString("Train failed");
     }
 }
 
@@ -241,20 +241,49 @@ bool CPredictor::isTrained()
     return   pTrees->isTrained();
 }
 
-void CPredictor::pollCollectData()
+void CPredictor::trainData()
 {
-    for (int i = 0; i < nSitTypeNumber; i++)
-    {
-        emit information("Collect information", "Going to collect " + getSitString(i) + " data");
-        try{
-            collectCertainType((eSitType)i);
-        }catch (const QString & e)
+
+
+    try{
+        for (int i = 0; i < nSitTypeNumber; i++)
         {
-            emit critial("Collect error",e);
-            return ;
+            emit information("Collect information", "Going to collect " + getSitString(i) + " data");
+            collectCertainType((eSitType)i);
         }
+        emit information("Collect information", "Finished collect");
+
+    }catch (const QString & e)
+    {
+        emit critial("Collect error", e);
     }
-    emit information("Collect information", "Finished Collect");
+
+    try{
+        train();
+        emit information("Train information", "Finished train");
+    }catch (const QString & e)
+    {
+        emit critial("Train error", e);
+    }
+
+    save2DB();
 }
 
-
+void CPredictor::tryLoadModel()
+{
+    try{
+        if (isTrained())
+        {
+            loadFromDB(Session::user);
+            emit information("Train information", "Find model");
+        }
+        else
+        {
+            emit information("Train Information", "No model available\nWill start train soon");
+            trainData();
+        }
+    }catch (const QString & e)
+    {
+        emit critial("Train error", e);
+    }
+}

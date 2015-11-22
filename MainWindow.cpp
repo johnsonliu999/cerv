@@ -27,7 +27,7 @@ void MainWindow::seatProcess()
     SitLogic::readOnce();
     for(auto res : SitLogic::getSitType())
     {
-        seatResultDisplayString+=SitLogic::fetchJudgedMessage(res)+"\n";
+        seatResultDisplayString=SitLogic::fetchJudgedMessage(res)+"\n";
     }
 
     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),timer(new QTimer)
 {
-    ui->setupUi(this);    
+    ui->setupUi(this);
     connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
 
 }

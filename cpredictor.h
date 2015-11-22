@@ -59,7 +59,9 @@ signals:
     void critial(const QString title, const QString content);
 
 public slots:
-    void pollCollectData();
+    void trainData();
+    void tryLoadModel();
+
 
 protected:
 

@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>collectDialog</class>
  <widget class="QDialog" name="collectDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,8 +13,23 @@
     <height>87</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>363</width>
+    <height>87</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>363</width>
+    <height>87</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Collect Data</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
   </property>
   <property name="modal">
    <bool>true</bool>

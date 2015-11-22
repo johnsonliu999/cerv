@@ -15,7 +15,8 @@ collectDialog::collectDialog(QWidget *parent) :
     connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
     connect(predictor, &CPredictor::critial, this, &collectDialog::presentCritical);
     connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation);
-    connect(this, &collectDialog::startCollect, predictor, &CPredictor::pollCollectData);
+    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData);
+    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel);
 }
 
 
@@ -29,7 +30,18 @@ void collectDialog::on_buttonStart_clicked()
     CPredictor* predictor = CPredictor::getPredictor();
     predictor->moveToThread(&predictor->collectThread);
     predictor->collectThread.start();
-    emit startCollect();
+    ui->buttonStart->setEnabled(false);
+    int res = QMessageBox::question(this, "Choice", "Would you like to load the train model?", QMessageBox::Yes, QMessageBox::No);
+    if (res == QMessageBox::Yes)
+    {
+        emit tryLoadModel();
+        ui->progressBar->setMinimum(0);
+        ui->progressBar->setMaximum(0);
+    }
+    else if (res == QMessageBox::No)
+    {
+        emit startTrain();
+    }
 }
 
 void collectDialog::setPercent(int percent)
