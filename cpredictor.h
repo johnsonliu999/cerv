@@ -48,6 +48,7 @@ private:
     Ptr<RTrees> pTrees;
     Mat  iData;
     Mat  iLabel;
+    int counter = 0;
 
     static CPredictor* m_pPredictor;
     CPredictor();

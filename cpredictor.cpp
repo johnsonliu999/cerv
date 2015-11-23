@@ -272,14 +272,15 @@ void CPredictor::trainData()
 void CPredictor::tryLoadModel()
 {
     try{
-        if (isTrained())
+        Predictor p = DAO::query(Session::user);
+        if (p.id != 0)
         {
             loadFromDB(Session::user);
             emit information("Train information", "Find model");
         }
         else
         {
-            emit information("Train Information", "No model available\nWill start train soon");
+            emit information("Train Information", "No model available");
             trainData();
         }
     }catch (const QString & e)

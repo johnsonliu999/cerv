@@ -12,11 +12,11 @@ collectDialog::collectDialog(QWidget *parent) :
     ui->setupUi(this);
     CPredictor* predictor = CPredictor::getPredictor();
 
-    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
-    connect(predictor, &CPredictor::critial, this, &collectDialog::presentCritical);
-    connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation);
-    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData);
-    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel);
+    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent, Qt::QueuedConnection);
+    connect(predictor, &CPredictor::critial, this, &collectDialog::presentCritical, Qt::BlockingQueuedConnection);
+    connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation, Qt::BlockingQueuedConnection);
+    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData, Qt::QueuedConnection);
+    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel, Qt::QueuedConnection);
 }
 
 
@@ -35,11 +35,12 @@ void collectDialog::on_buttonStart_clicked()
     if (res == QMessageBox::Yes)
     {
         emit tryLoadModel();
-        ui->progressBar->setMinimum(0);
-        ui->progressBar->setMaximum(0);
+//        ui->progressBar->setMinimum(0);
+//        ui->progressBar->setMaximum(0);
     }
     else if (res == QMessageBox::No)
     {
+
         emit startTrain();
     }
 }

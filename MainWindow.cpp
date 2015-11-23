@@ -166,9 +166,9 @@ void MainWindow::on_pushButton_4_clicked()
             qDebug() << "Start seat init";
             SitLogic::init();
             qDebug() << "Finish seat init";
-        }catch(const char* msg)
+        }catch(const QString & e)
         {
-            QMessageBox::information(this,"error",tr(msg));
+            QMessageBox::information(this,"error",e);
                 return;
         }
 
