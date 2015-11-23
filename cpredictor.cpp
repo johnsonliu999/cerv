@@ -11,7 +11,7 @@
 #include "moc_cpredictor.cpp"
 
 #define ATTRIBUTE_PRE_SAMPLE 20
-#define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 500
+#define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 100
 
 CPredictor* CPredictor::m_pPredictor = NULL;
 int CPredictor::nSitTypeNumber = 5;
