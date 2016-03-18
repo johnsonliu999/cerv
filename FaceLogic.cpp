@@ -46,7 +46,7 @@ QList<Point> FaceLogic::getNormalValue()
 		}
 	}
 	else{
-	    throw "ÎÄ¼ş±»ÎóÉ¾";
+	    throw "æ–‡ä»¶è¢«è¯¯åˆ ";
 	}
     file.close();
 	return temp;
@@ -59,7 +59,7 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
     {
        normal = getNormalValue();
        if(normal.size()!=3)
-           throw "ÎÄ¼şÒÑËğ»µ";
+           throw "æ–‡ä»¶å·²æŸå";
     }
 
 	/*if(lfeye.x < normal[0].x)
@@ -121,7 +121,7 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
 		}
 		else if(abs(lfeye.y-normal[0].y)/abs(lfeye.x-normal[0].x)+abs(rteye.y-normal[1].y)/abs(rteye.x-normal[1].x)+abs(mouth.y-normal[2].y)/abs(mouth.x-normal[2].x) > 3)
 		{
-			if(lfeye.y-normal[0].y>0&&rteye.y-normal[1].y>0||mouth.y-normal[2].y>0)
+            if( (lfeye.y-normal[0].y>0 && rteye.y-normal[1].y>0) ||mouth.y-normal[2].y>0)
 			{
 				rtType = Down;
 			}
@@ -173,8 +173,9 @@ QString FaceLogic::fetchJudgedMessage(FacePostureType faceType)
         case Fault_FACE:
             return "no entire face";
             break;
-
     }
+
+    return QString();
 }
 
 FacePostureType FaceLogic::getRtType()

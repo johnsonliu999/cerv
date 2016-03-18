@@ -82,7 +82,7 @@ void MainWindow::timing()
     }
     else
     {
-        //ÒÔÏÂÎªÌá½»±¨¸æ
+        //ä»¥ä¸‹ä¸ºæäº¤æŠ¥å‘Š
         if(face_duration>=5)
         {
             end_t =QTime::currentTime();
@@ -104,7 +104,7 @@ void MainWindow::timing()
         start_t =QTime::currentTime();
     }
 
-    //Èç¹ûÍ¬Ò»×ËÊÆ³¬¹ıÎå´Î£¬Ôò°´×ËÊÆÏàÓ¦´¦Àí
+    //å¦‚æœåŒä¸€å§¿åŠ¿è¶…è¿‡äº”æ¬¡ï¼Œåˆ™æŒ‰å§¿åŠ¿ç›¸åº”å¤„ç†
     if(face_duration>=5)
     {
         switch(FaceLogic::getRtType())
@@ -116,7 +116,7 @@ void MainWindow::timing()
            case NO_FACE:
               ui->statusBar->showMessage("you have left the computer...", 1000);
               shakeFrm();
-           //ÆäËûµÄ´ı»áÔÙ¼Ó
+           //å…¶ä»–çš„å¾…ä¼šå†åŠ 
            case Normal:
               if(face_duration>=60)
               {
@@ -172,7 +172,7 @@ void MainWindow::on_pushButton_4_clicked()
                 return;
         }
 
-        //¶¨Ê±½ØÆÁ
+        //å®šæ—¶æˆªå±
         qDebug() << "Start timer";
         timer->start(1000);
         ui->pushButton_4->setText("Stop");
