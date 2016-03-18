@@ -230,10 +230,7 @@ QImage detect()
 }
 
 string int2str(int n) {
-
-    char t[10];
-	itoa(n,t,10);
-    return string(t);
+    return std::to_string(n);
 }
 
 vector<string> split(const string& src, string delimit, string null_subst)
