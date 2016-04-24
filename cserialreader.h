@@ -1,7 +1,7 @@
 #ifndef CSERIALREADER_H
 #define CSERIALREADER_H
 #include <QSerialPort>
-#include <cv.h>
+#include "cv.h"
 #include <QString>
 #include <QList>
 
@@ -16,6 +16,7 @@
 /// 使用方法： 先获取单例，open（）--> connectDevice() --> readSerial -->closeSerial().
 /// 唯一有用的接口： readSerial（）
 /// 所有错误都以异常抛出
+
 
 ///
 /// \brief The CSerialReader class
