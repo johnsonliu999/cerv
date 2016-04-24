@@ -11,6 +11,10 @@
 
 CSerialReader* CSerialReader::m_pReader = NULL;
 
+///
+/// \brief CSerialReader::CSerialReader
+/// private constructor.
+///
 CSerialReader::CSerialReader()
 {
 }
@@ -128,6 +132,7 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
 /**
  * @brief CSerialReader::OpenSerial
  * 打开对应8963串口,如果已经打开也返回true
+ * @param[in] nProductID    Id of product
  *
  * @return ：打开成功返回true，否则false
  */
@@ -171,7 +176,6 @@ bool CSerialReader::OpenSerial(int nProductID)
  * @brief CSerialReader::CloseSerial
  * 关闭串口，如果没有打开也返回true
  *
- * @return
  */
 void CSerialReader::CloseSerial()
 {
@@ -217,6 +221,10 @@ const QList< QList<int> > CSerialReader::ReadSerial()
     return __ParseData(iList);
 }
 
+///
+/// \brief CSerialReader::getReader
+/// \return pointer to CSerialReader object
+///
 CSerialReader* CSerialReader::getReader()
 {
     if (m_pReader == NULL)

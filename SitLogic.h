@@ -6,6 +6,11 @@
 #include <QString>
 #include <QList>
 #include <QDebug>
+
+///
+/// \brief The SitLogic class
+/// process seat related logic.
+///
 class SitLogic
 {
 public:

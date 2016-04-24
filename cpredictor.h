@@ -22,6 +22,10 @@ using namespace cv::ml;
      唯一有用的接口： predict（）
 
 */
+
+///
+/// \brief The CPredictor class provide method to collect, train, store and predict.
+///
 class CPredictor:public QObject
 {
     Q_OBJECT

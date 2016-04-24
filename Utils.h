@@ -4,6 +4,11 @@
 #include <QString>
 #include "FaceLogic.h"
 using namespace std;
+
+///
+/// \brief The Utils class
+/// provide general utilities.
+///
 class Utils
 {
 public:

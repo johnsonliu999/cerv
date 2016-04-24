@@ -4,12 +4,9 @@
 
 #include <QImage>
 
-
 void openCamera();
 
-
 void closeCamera();
-
 
 QImage detect();
 

@@ -7,12 +7,23 @@
 FacePostureType FaceLogic::rtType =Normal;
 QList<Point> FaceLogic::normal =QList<Point>();
 
+///
+/// \brief FaceLogic::isInitialized tell if position.txt exists or not.
+/// \return Success or not.
+///
 bool FaceLogic::isInitialized()
 {
     std::ifstream file("position.txt");   
 	return file;
 }
 
+///
+/// \brief FaceLogic::storeNormalValue store position of eye and mouth.
+/// \param lfeye Left eye position.
+/// \param rteye Right eye position.
+/// \param mouth Mouth position.
+/// \return success or not.
+///
 bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Point& mouth)
 {
     qDebug() << "Enter storeNormalValue";
@@ -29,6 +40,13 @@ bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Poi
     return false;
 }
 
+///
+/// \brief FaceLogic::getNormalValue
+/// get eye and mouth position.
+/// If position.txt not exist, error will occur.
+///
+/// \return List of points.
+///
 QList<Point> FaceLogic::getNormalValue()
 {
     std::ifstream file("position.txt");
@@ -53,6 +71,13 @@ QList<Point> FaceLogic::getNormalValue()
 
 }
 
+///
+/// \brief FaceLogic::judgeFacePosture tell type of face,
+/// and store in rtType.
+/// \param lfeye Left eye position.
+/// \param rteye Right eye position.
+/// \param mouth Mouth position.
+///
 void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Point& mouth)
 {
     if(normal.size()==0)
@@ -137,7 +162,11 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
 	}
 }
 
-
+///
+/// \brief FaceLogic::fetchJudgedMessage provide string format information.
+/// \param faceType
+/// \return Type in string format.
+///
 QString FaceLogic::fetchJudgedMessage(FacePostureType faceType)
 {
 
@@ -178,11 +207,20 @@ QString FaceLogic::fetchJudgedMessage(FacePostureType faceType)
     return QString();
 }
 
+///
+/// \brief FaceLogic::getRtType return current stored face type in enum format.
+/// \return Face type in enum format.
+///
 FacePostureType FaceLogic::getRtType()
 {
     return rtType;
 }
 
+///
+/// \brief FaceLogic::setRtType
+/// provide method to set current rtType.
+/// \param rt
+///
 void FaceLogic::setRtType(FacePostureType rt)
 {
     rtType =rt;

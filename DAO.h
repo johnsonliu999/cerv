@@ -14,7 +14,9 @@
    all data access interface defined here.
 */
 
-
+///
+/// \brief The DAO class provide unified interface to operate database.
+///
 class DAO
 {
 public:

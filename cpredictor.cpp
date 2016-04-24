@@ -69,6 +69,11 @@ CPredictor *CPredictor::getPredictor()
     return m_pPredictor;
 }
 
+///
+/// \brief CPredictor::getSitString return string format infomation.
+/// \param index Type of seat.
+/// \return Seat type in string format.
+///
 const QString CPredictor::getSitString(int index)
 {
     switch ((CPredictor::eSitType)index)
@@ -185,6 +190,11 @@ void CPredictor::collectCertainType(eSitType type)
 
 }
 
+///
+/// \brief CPredictor::CollectDataRaw store data.
+/// \param[in] type Type of seat.
+/// \param[in] data Data read from serial port.
+///
 void CPredictor::CollectDataRaw(CPredictor::eSitType type, const QList<QList<int> > & data)
 {
 
@@ -241,8 +251,6 @@ bool CPredictor::isTrained()
 
 void CPredictor::trainData()
 {
-
-
     try{
         for (int i = 0; i < nSitTypeNumber; i++)
         {

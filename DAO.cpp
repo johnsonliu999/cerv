@@ -2,6 +2,10 @@
 #include "DAO.h"
 #include "cdatabase.h"
 
+///
+/// \brief DAO::insert insert log.
+/// \param log Log struct.
+///
 void DAO::insert(const Log &log)
 {
      QSqlDatabase db =CDatabase::getDB();
@@ -25,6 +29,12 @@ void DAO::insert(const Log &log)
 
 }
 
+///
+/// \brief DAO::query query log according to data and user.
+/// \param[in] date
+/// \param[in] user
+/// \return Related log.
+///
 QList<Log> DAO::query(const QDate &date,const User &user)
 {
     QSqlDatabase db =CDatabase::getDB();
@@ -56,10 +66,13 @@ QList<Log> DAO::query(const QDate &date,const User &user)
     db.close();
 
     return logs;
-
-
 }
 
+///
+/// \brief DAO::insert insert user.
+/// \param user
+/// \return success or not.
+///
 bool DAO::insert(const User &user)
 {
     int id;
@@ -79,6 +92,12 @@ bool DAO::insert(const User &user)
     return true;
 }
 
+///
+/// \brief DAO::query query id according to user name.
+/// \param[in] username
+/// \param[out] id
+/// \return Id of user.
+///
 bool DAO::query(const QString& username, int &id)
 {
     QSqlDatabase db =CDatabase::getDB();
@@ -103,6 +122,10 @@ bool DAO::query(const QString& username, int &id)
 
 }
 
+///
+/// \brief DAO::insert insert predictor model.
+/// \param[in] predictor predictor object.
+///
 void DAO::insert(const Predictor &predictor)
 {
     QSqlDatabase db =CDatabase::getDB();
@@ -119,6 +142,11 @@ void DAO::insert(const Predictor &predictor)
     db.close();
 }
 
+///
+/// \brief DAO::query query predictor object accroding to user.
+/// \param[in] user
+/// \return Predictor model.
+///
 Predictor DAO::query(const User &user)
 {
     QSqlDatabase db =CDatabase::getDB();

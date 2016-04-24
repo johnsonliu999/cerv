@@ -8,6 +8,11 @@
 
 
 enum  totalType{};
+
+///
+/// \brief The TotalLogic class control total logic.
+///
+
 class TotalLogic
 {
 public:
@@ -20,17 +25,17 @@ public:
         SitLogic::readOne();
         eSitType t2 =SitLogic::getSitType();
 
-        //侧脸等，此时只有坐垫有效
+        //渚ц劯绛夛紝姝ゆ椂鍙湁鍧愬灚鏈夋晥
         if(t1>=1&&t1<=3)
         {
             return t2;
         }
-        //上下脸，此时只有人脸识别有效
+        //涓婁笅鑴革紝姝ゆ椂鍙湁浜鸿劯璇嗗埆鏈夋晥
         else if(t1==8||t1==9)
         {
             return t1;
         }
-        //其他的，综合判断
+        //鍏朵粬鐨勶紝缁煎悎鍒ゆ柇
         else
         {
 

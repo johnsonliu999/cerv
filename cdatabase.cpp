@@ -2,11 +2,22 @@
 
 
 QSqlDatabase CDatabase::db =QSqlDatabase();
+
 CDatabase::CDatabase()
 {
 
 }
 
+///
+/// \brief CDatabase::__ConnectDatabase
+/// connect database.
+///
+/// \param cDatabaseType Type of Database.
+/// \param cHostName Host name.
+/// \param cDatabaseName
+/// \param cUserName
+/// \param cPassword
+///
 void CDatabase::__ConnectDatabase(const QString &cDatabaseType  = "QMYSQL", const QString &cHostName = "localhost",
                                   const QString &cDatabaseName = "neck", const QString &cUserName = "root",
                                   const QString &cPassword = "qq452977491")
@@ -22,6 +33,10 @@ void CDatabase::__ConnectDatabase(const QString &cDatabaseType  = "QMYSQL", cons
         throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
 }
 
+///
+/// \brief CDatabase::getDB return database object.
+/// \return Database object.
+///
 const QSqlDatabase CDatabase::getDB()
 {
     if (db.isValid())
@@ -47,5 +62,3 @@ void CDatabase::CloseDB()
 {
     db.close();
 }
-
-

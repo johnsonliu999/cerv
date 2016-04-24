@@ -10,6 +10,10 @@ using namespace cv;
 
 enum FacePostureType{ Normal, Profile,NO_FACE,Fault_FACE, Near, Far, Left, Right, Up, Down};
 
+///
+/// \brief The FaceLogic class
+/// process face related logic.
+///
 class FaceLogic
 {
 public:
