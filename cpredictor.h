@@ -2,7 +2,7 @@
 #define CPREDICTOR_H
 
 #include <QList>
-#include <cv.h>
+#include "cv.h"
 #include <ml.h>
 #include <QObject>
 #include <QThread>

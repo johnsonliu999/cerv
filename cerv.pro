@@ -11,16 +11,17 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = cerv
 TEMPLATE = app
 
-INCLUDEPATH += /usr/local/include \
-/usr/local/include/opencv \
-/usr/local/include/opencv2 \
+# ubuntu
+#INCLUDEPATH += /usr/local/include \
+#/usr/local/include/opencv \
+#/usr/local/include/opencv2 \
 
-LIBS += /usr/local/lib/libopencv_core.so \
-/usr/local/lib/libopencv_ml.so \
-/usr/local/lib/libopencv_highgui.so \
-/usr/local/lib/libopencv_objdetect.so \
-/usr/local/lib/libopencv_imgproc.so \
-/usr/local/lib/libopencv_videoio.so \
+#LIBS += /usr/local/lib/libopencv_core.so \
+#/usr/local/lib/libopencv_ml.so \
+#/usr/local/lib/libopencv_highgui.so \
+#/usr/local/lib/libopencv_objdetect.so \
+#/usr/local/lib/libopencv_imgproc.so \
+#/usr/local/lib/libopencv_videoio.so \
 
 FORMS += \
     collectdialog.ui \
@@ -67,3 +68,17 @@ SOURCES += \
 
 DISTFILES += \
     README.md
+
+INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
+D:/Download/OpenCV/opencv/build/include/opencv \
+D:/Download/OpenCV/opencv/build/include/opencv2
+
+# windows
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Download/OpenCV/opencv/build/x64/vc14/lib/ -lopencv_world310
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Download/OpenCV/opencv/build/x64/vc14/lib/ -lopencv_world310d
+else:unix: LIBS += -L$$PWD/../../../Download/OpenCV/opencv/build/x64/vc14/lib/ -lopencv_world310
+
+INCLUDEPATH += $$PWD/../../../Download/OpenCV/opencv/build/x64/vc14
+DEPENDPATH += $$PWD/../../../Download/OpenCV/opencv/build/x64/vc14
+
+

@@ -3,7 +3,7 @@
 #define FACELOGIC_H
 
 
-#include "opencv2/core/core.hpp"
+#include "core/core.hpp"
 #include <QList>
 #include <QString>
 using namespace cv;
