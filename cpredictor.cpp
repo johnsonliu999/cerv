@@ -141,7 +141,7 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 
 /**
  * @brief CPredictor::CollectDataFromSerialPort
- * collect a specific sit type with number of NUMBER_OF_TRAINING_SAMPLE_PER_CLASS
+ * collect a specific seat type with number of NUMBER_OF_TRAINING_SAMPLE_PER_CLASS
  * since the matrix start with 0, so we can see many details of marginal 1
  * be careful with the bound
  *

@@ -38,3 +38,6 @@ Makefile*
 *.pro
 
 html/
+man/
+xml/
+rtf/
