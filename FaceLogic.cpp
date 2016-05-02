@@ -13,8 +13,8 @@ QList<Point> FaceLogic::normal =QList<Point>();
 ///
 bool FaceLogic::isInitialized()
 {
-    std::ifstream file("position.txt");   
-	return file;
+    std::ifstream file("position.txt");
+    return file.is_open();
 }
 
 ///
@@ -64,7 +64,7 @@ QList<Point> FaceLogic::getNormalValue()
 		}
 	}
 	else{
-	    throw "文件被误删";
+        throw QString("File not found");
 	}
     file.close();
 	return temp;
@@ -84,7 +84,7 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
     {
        normal = getNormalValue();
        if(normal.size()!=3)
-           throw "文件已损坏";
+           throw "File not Found";
     }
 
 	/*if(lfeye.x < normal[0].x)

@@ -32,7 +32,7 @@ class CPredictor:public QObject
 public:
     QThread collectThread;
 public:
-    enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD};
+    enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
     static int nSitTypeNumber;
 
 public:

@@ -7,7 +7,9 @@
 
 //! bluetooth device id.
 /*! detail description */
-#define BT_ID 8963
+// #define BT_ID 8963
+
+#define BT_ID 29987
 #define ARDUINO_ID 67
 #define BT_ADDR "0x00158300428D"
 

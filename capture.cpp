@@ -23,10 +23,10 @@ using namespace cv;
  string int2str(int n);
 
  /** Global variables */
- String face_cascade_name = "D:/OpenCV/haarcascades/haarcascade_frontalface_alt.xml";
- String profile_cascade_name ="D:/OpenCV/lbpcascades/lbpcascade_profileface.xml";
- String eyes_cascade_name = "D:/OpenCV/haarcascades/haarcascade_eye_tree_eyeglasses.xml";
- String mouth_cascade_name ="D:/OpenCV/haarcascades/haarcascade_mcs_mouth.xml";
+ String face_cascade_name = "./train_file/haarcascade_frontalface_alt.xml";
+ String profile_cascade_name ="./train_file/lbpcascade_profileface.xml";
+ String eyes_cascade_name = "./train_file/haarcascade_eye_tree_eyeglasses.xml";
+ String mouth_cascade_name ="./train_file/haarcascade_mcs_mouth.xml";
  CascadeClassifier face_cascade;
  CascadeClassifier eyes_cascade;
  CascadeClassifier mouth_cascade;
@@ -52,8 +52,7 @@ using namespace cv;
          !profile_cascade.load( profile_cascade_name) )
      {
          qDebug() << "Xml file not found";
-         throw "Xml file not found";
-
+         throw QString("Xml file not found");
      }
 
      qDebug() << "Xml fild found";
@@ -62,7 +61,7 @@ using namespace cv;
      else
      {
          qDebug() << "Open camera failed";
-         throw "Open camera failed";
+         throw QString("Open camera failed");
      }
 
  }
@@ -85,7 +84,7 @@ QImage detect()
     if(!cap.isOpened())
     {
         qDebug() << "Camera not open";
-        throw "camera not open";
+        throw QString("camera not open");
     }
     Mat frame;
     cap>>frame;
@@ -257,7 +256,7 @@ vector<string> split(const string& src, string delimit, string null_subst)
 bool isAllowCameraOpen()
 {
     ifstream file("guarantee.txt");
-    return file;
+    return file.is_open();
 }
 
 void allowCameraOpen()

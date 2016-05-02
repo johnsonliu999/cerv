@@ -30,6 +30,10 @@ FORMS += \
     registerdialog.ui \
     ReportWindow.ui
 
+INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
+D:/Download/OpenCV/opencv/build/include/opencv \
+D:/Download/OpenCV/opencv/build/include/opencv2
+
 HEADERS += \
     capture.h \
     cdatabase.h \
@@ -70,9 +74,7 @@ SOURCES += \
 DISTFILES += \
     README.md
 
-INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
-D:/Download/OpenCV/opencv/build/include/opencv \
-D:/Download/OpenCV/opencv/build/include/opencv2
+
 
 # windows
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Download/OpenCV/opencv/build/x64/vc14/lib/ -lopencv_world310
@@ -81,5 +83,3 @@ else:unix: LIBS += -L$$PWD/../../../Download/OpenCV/opencv/build/x64/vc14/lib/ -
 
 INCLUDEPATH += $$PWD/../../../Download/OpenCV/opencv/build/x64/vc14
 DEPENDPATH += $$PWD/../../../Download/OpenCV/opencv/build/x64/vc14
-
-

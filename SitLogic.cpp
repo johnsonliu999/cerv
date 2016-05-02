@@ -40,7 +40,10 @@ void SitLogic::readOnce()
 ///
 CPredictor::eSitType SitLogic::getAverageType()
 {
-     return stType.at(0);
+    if (stType.size() != 0)
+        return stType.at(0);
+    else
+        return CPredictor::eSitType::UNKNOWN;
 }
 
 ///
@@ -65,5 +68,9 @@ QString SitLogic::fetchJudgedMessage(CPredictor::eSitType sitType)
         break;
     case CPredictor::FORWARD:
         return "Forward";
+        break;
+    case CPredictor::UNKNOWN:
+        return "Unknown";
+        break;
     }
 }

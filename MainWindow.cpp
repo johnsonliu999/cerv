@@ -56,8 +56,6 @@ void MainWindow::shakeFrm()
 
 }
 
-
-
 bool first =true;
 int face_duration =0;
 FacePostureType previous;
@@ -169,7 +167,7 @@ void MainWindow::on_pushButton_4_clicked()
         }catch(const QString & e)
         {
             QMessageBox::information(this,"error",e);
-                return;
+            return;
         }
 
         //定时截屏
