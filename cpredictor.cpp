@@ -11,7 +11,7 @@
 #define ATTRIBUTE_PRE_SAMPLE 20
 #define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 100
 
-CPredictor* CPredictor::m_pPredictor = NULL;
+CPredictor* CPredictor::mp_predictor = NULL;
 int CPredictor::nSitTypeNumber = 5;
 
 
@@ -44,7 +44,7 @@ CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
     for (int i = 0; i < ATTRIBUTE_PRE_SAMPLE; i++)
         iPredictData.at<float>(0,i) = iPredictDataList[i];
 
-    pTrees->predict(iPredictData, iPredictLabel);
+    mp_trees->predict(iPredictData, iPredictLabel);
     int nPredictLable = static_cast<int>(iPredictLabel.at<float>(0,0));
 
     qDebug() << "Finished predict";
@@ -64,9 +64,9 @@ CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
  */
 CPredictor *CPredictor::getPredictor()
 {
-    if(m_pPredictor ==NULL)
-        m_pPredictor =new CPredictor();
-    return m_pPredictor;
+    if(mp_predictor ==NULL)
+        mp_predictor =new CPredictor();
+    return mp_predictor;
 }
 
 ///
@@ -105,19 +105,19 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 {
     // 创建训练数据集及随机森林模型
     Ptr<TrainData> pTrainData = TrainData::create(iData, ROW_SAMPLE, iLabel);
-    pTrees = RTrees::create();
+    mp_trees = RTrees::create();
 
     // 设置训练参数
-    pTrees->setMaxDepth(10);
-    pTrees->setMinSampleCount(10);
-    pTrees->setRegressionAccuracy(0);
-    pTrees->setUseSurrogates(false);
-    pTrees->setMaxCategories(5);
-    pTrees->setPriors(Mat());
-    pTrees->setActiveVarCount(20);
-    pTrees->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 0.01f));
+    mp_trees->setMaxDepth(10);
+    mp_trees->setMinSampleCount(10);
+    mp_trees->setRegressionAccuracy(0);
+    mp_trees->setUseSurrogates(false);
+    mp_trees->setMaxCategories(5);
+    mp_trees->setPriors(Mat());
+    mp_trees->setActiveVarCount(20);
+    mp_trees->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 100, 0.01f));
 
-    if (pTrees->train(pTrainData))
+    if (mp_trees->train(pTrainData))
     {
         qDebug() << "Train succeed";      
     }
@@ -152,9 +152,7 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
 void CPredictor::collectCertainType(eSitType type)
 {
 
-    CSerialReader* pReader = CSerialReader::getReader();
-    pReader->OpenSerial(ARDUINO_ID);
-    pReader->ConnectDevice();
+    CSerialReader* p_reader = CSerialReader::getReader();
 
     QList< QList<int> > iDataListList;
 
@@ -165,7 +163,7 @@ void CPredictor::collectCertainType(eSitType type)
     // since the matrix start with 0
     while (nTotalNumber + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
-        iDataListList = pReader->ReadSerial();
+        iDataListList = p_reader->ReadSerial();
 
         int size = iDataListList.size();
         if (nTotalNumber + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
@@ -185,8 +183,6 @@ void CPredictor::collectCertainType(eSitType type)
         QThread::sleep(5);
     }
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
-
-    pReader->CloseSerial();
 
 }
 
@@ -214,14 +210,14 @@ void CPredictor::loadFromDB(const User& user)
 
      Predictor p =DAO::query(user);
      if(p.id!=0)
-        pTrees=pTrees->loadFromString<RTrees>((String)p.xml.toStdString());
+        mp_trees=mp_trees->loadFromString<RTrees>((String)p.xml.toStdString());
 }
 
 
 #include <QFile>
 void CPredictor::save2DB()
 {
-     pTrees->save("temp.xml");
+     mp_trees->save("temp.xml");
 
      //read file to database,and delete the temp file.
 
@@ -246,22 +242,31 @@ void CPredictor::train()
 
 bool CPredictor::isTrained()
 {
-    return   pTrees->isTrained();
+    return   mp_trees->isTrained();
 }
 
-void CPredictor::trainData()
+void CPredictor::trainData(QString portName, bool wired)
 {
+
     try{
+        CSerialReader* p_reader = CSerialReader::getReader();
+        p_reader->OpenSerial(portName);
+
+        if (!wired)p_reader->ConnectDevice();
+
         for (int i = 0; i < nSitTypeNumber; i++)
         {
             emit information("Collect information", "Going to collect " + getSitString(i) + " data");
             collectCertainType((eSitType)i);
         }
+
+        p_reader->CloseSerial();
         emit information("Collect information", "Finished collect");
 
     }catch (const QString & e)
     {
         emit critial("Collect error", e);
+        return;
     }
 
     try{
@@ -270,6 +275,7 @@ void CPredictor::trainData()
     }catch (const QString & e)
     {
         emit critial("Train error", e);
+        return;
     }
 
     save2DB();
@@ -287,10 +293,10 @@ void CPredictor::tryLoadModel()
         else
         {
             emit information("Train Information", "No model available");
-            trainData();
+            return;
         }
     }catch (const QString & e)
     {
-        emit critial("Train error", e);
+        emit information("Train error", e);
     }
 }

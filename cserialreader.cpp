@@ -37,13 +37,13 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 
     /*** send inquery device ***/
 
-    if (-1 == m_iPort.write("at+inq\r\n"))
+    if (-1 == m_port.write("at+inq\r\n"))
     {
         throw QString("connect serial port error");
     }
 
     qDebug() << "Wait for inquery response data";
-    if (-1 == m_iPort.waitForReadyRead(2000))
+    if (-1 == m_port.waitForReadyRead(2000))
     {
         throw QString("connect serial port error");
     }
@@ -51,8 +51,8 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     QByteArray iByteArray = "";
     // "INQ" stand for end of inquery
 
-    while (m_iPort.waitForReadyRead(5000))
-        iByteArray += m_iPort.read(100);
+    while (m_port.waitForReadyRead(5000))
+        iByteArray += m_port.read(100);
 
     qDebug() << iByteArray;
 
@@ -71,13 +71,13 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     /*** connect device ***/
     qDebug() << "Device found, try to connect";
     // try to connect the device
-    if (-1 == m_iPort.write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
+    if (-1 == m_port.write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
     {
        throw QString("Error write conna");
     }
 
     qDebug() << "Wait for receive cona info";
-    if (-1 == m_iPort.waitForReadyRead(2000))
+    if (-1 == m_port.waitForReadyRead(2000))
         throw QString("long wait");
 
 }
@@ -90,7 +90,7 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
  */
 bool CSerialReader::isConnected()
 {    
-    if(m_iPort.waitForReadyRead(2000))
+    if(m_port.waitForReadyRead(2000))
         return true;
     else
         return false;
@@ -132,44 +132,27 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
 /**
  * @brief CSerialReader::OpenSerial
  * 打开对应8963串口,如果已经打开也返回true
- * @param[in] nProductID    Id of product
+ * @param[in] portName passed to setPortName
  *
+ * @exception <QString e> {open serial port failed.}
  * @return ：打开成功返回true，否则false
  */
-bool CSerialReader::OpenSerial(int nProductID)
+void CSerialReader::OpenSerial(QString& portName)
 {
-    QList<QSerialPortInfo> iSList = QSerialPortInfo::availablePorts();
-
-    int index = -1;
-    for (int i = 0; i < iSList.size(); i++)
+    if (m_port.isOpen())
     {
-        if (nProductID == iSList[i].productIdentifier())
+        if (m_port.portName() == portName)
         {
-            index = i;
-            break;
+            qDebug() << "Port has opened.";
+            return;
         }
+        m_port.close();
     }
 
-    if (index == -1)
-    {
-        throw QString("serial port not found");
-    }
-
-
-    m_iPort.setPort(iSList[index]);
-
-    if (m_iPort.isOpen())
-    {
-        return true;
-    }
-
-    if (false == m_iPort.open(QSerialPort::ReadWrite))
-    {
-        throw QString("Open serial port failed");
-    }
-
-    qDebug() << "Open serial port succeed";
-
+    m_port.setPortName(portName);
+    if (!m_port.open(QSerialPort::ReadWrite))
+        throw QString("Open serial port failed.");
+    qDebug() << "Open serial port succeed.";
 }
 
 /**
@@ -179,8 +162,8 @@ bool CSerialReader::OpenSerial(int nProductID)
  */
 void CSerialReader::CloseSerial()
 {
-    if(m_iPort.isOpen())
-       m_iPort.close();
+    if(m_port.isOpen())
+       m_port.close();
 }
 
 
@@ -198,15 +181,15 @@ const QList< QList<int> > CSerialReader::ReadSerial()
     char buffer[5000] = {0};
 
     // 读取前需要设置阻塞
-    if (!m_iPort.waitForReadyRead(5000))
+    if (!m_port.waitForReadyRead(5000))
     {
         qDebug() << "No data read in 5s";
         return QList< QList<int> >();
     }
-    m_iPort.read(buffer, 5000);
+    m_port.read(buffer, 5000);
 
     // 提取完整数据，需要满足以#开头，*结尾，20个数据
-    QRegExp rx("(#\\s(\\d{3,4}\\s){20}\\*\r\n)");
+    QRegExp rx("(#\\s(\\d{1,4}\\s){20}\\*\r\n)");
     rx.setMinimal(true); // 设置非贪心模式，匹配最小长度
 
     int pos = 0;

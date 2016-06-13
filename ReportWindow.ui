@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>556</width>
     <height>400</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>500</width>
+    <width>800</width>
     <height>400</height>
    </size>
   </property>
@@ -31,15 +31,21 @@
      <rect>
       <x>30</x>
       <y>50</y>
-      <width>441</width>
+      <width>501</width>
       <height>301</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>30</x>
       <y>20</y>
       <width>341</width>
       <height>20</height>
@@ -55,7 +61,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>500</width>
+     <width>556</width>
      <height>23</height>
     </rect>
    </property>

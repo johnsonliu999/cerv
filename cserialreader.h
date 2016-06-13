@@ -28,14 +28,14 @@ class CSerialReader
 {
 public:
     static CSerialReader* getReader();
-    bool OpenSerial(int nProductID = BT_ID);
+    void OpenSerial(QString &portName);
     void CloseSerial();
     const QList<QList<int> > ReadSerial();
     void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
     bool isConnected();
 
 private:
-    QSerialPort m_iPort; ///< store current port.
+    QSerialPort m_port; ///< store current port.
     static CSerialReader* m_pReader; ///< singleton mode, store CSerialReader object.
 
 private:

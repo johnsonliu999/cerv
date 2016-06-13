@@ -31,6 +31,7 @@ class CPredictor:public QObject
     Q_OBJECT
 public:
     QThread collectThread;
+
 public:
     enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
     static int nSitTypeNumber;
@@ -48,13 +49,17 @@ public:
     void collectCertainType(eSitType type);
 
     void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
-private:   
-    Ptr<RTrees> pTrees;
+
+public:
+    static CPredictor* mp_predictor;
+    Ptr<RTrees> mp_trees;
+
+private:
     Mat  iData;
     Mat  iLabel;
     int counter = 0;
 
-    static CPredictor* m_pPredictor;
+
     CPredictor();
     ~CPredictor();
 
@@ -64,12 +69,11 @@ signals:
     void critial(const QString title, const QString content);
 
 public slots:
-    void trainData();
+    void trainData(QString portName, bool wired);
     void tryLoadModel();
 
 
 protected:
-
     void __BuildRTrees(Mat & i_Data, Mat & i_Label);
 
 

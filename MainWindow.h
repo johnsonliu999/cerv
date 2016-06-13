@@ -24,9 +24,6 @@ private slots:
 
     void on_MainWindow_destroyed();
 
-
-    void on_calendarWidget_clicked(const QDate &date);
-
     void on_pushButton_4_clicked();
 
     /*** seat operation ***/
@@ -35,6 +32,8 @@ private slots:
     /**********************/
 
     void on_actionTrain_triggered();
+
+    void on_calendarWidget_clicked(const QDate &date);
 
 private:
     Ui::MainWindow *ui;

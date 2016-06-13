@@ -1,8 +1,8 @@
 #include "SitLogic.h"
 
 QList<CPredictor::eSitType> SitLogic::stType = QList<CPredictor::eSitType>();
-CPredictor* SitLogic::predictor =CPredictor::getPredictor();
-CSerialReader* SitLogic::reader =CSerialReader::getReader();
+CPredictor* SitLogic::p_predictor =CPredictor::getPredictor();
+CSerialReader* SitLogic::p_reader =CSerialReader::getReader();
 
 ///
 /// \brief SitLogic::getSitType return list of recent sit type.
@@ -13,25 +13,14 @@ QList<CPredictor::eSitType> SitLogic::getSitType()
      return stType;
 }
 
-/**
-* @brief SitLogic::init
-* open the bluetooth serial port
-* and connect the slave bluetooth device
-*/
-void SitLogic::init()
-{
-    reader->OpenSerial(BT_ID);
-    reader->ConnectDevice(BT_ADDR);
-}
-
 ///
 /// \brief SitLogic::readOnce
 /// read and store recent predicted type into stType.
 ///
 void SitLogic::readOnce()
 {
-    for(auto data : reader->ReadSerial())
-        stType.append(predictor->Predict(data));
+    for(auto data : p_reader->ReadSerial())
+        stType.append(p_predictor->Predict(data));
 }
 
 ///

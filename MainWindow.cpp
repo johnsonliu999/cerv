@@ -16,12 +16,32 @@
 #include "FaceLogic.h"
 #include "collectdialog.h"
 
+#include <QList>
+#include <QSerialPortInfo>
 
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow),timer(new QTimer)
+{
+    ui->setupUi(this);
+
+    QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
+    ui->COMComboBox->setCurrentText("None");
+    for (int i = 0; i < portList.length(); i++)
+        ui->COMComboBox->addItem(portList[i].portName());
+
+    connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+    delete timer;
+}
 
 
 void MainWindow::seatProcess()
 {
-
     QString seatResultDisplayString = "";    
 
     SitLogic::readOnce();
@@ -31,23 +51,8 @@ void MainWindow::seatProcess()
     }
 
     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
-
 }
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow),timer(new QTimer)
-{
-    ui->setupUi(this);
-    connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
-
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-    delete timer;
-}
 
 
 
@@ -66,6 +71,7 @@ void MainWindow::timing()
 
 
     ui->label->setPixmap(QPixmap::fromImage(detect()));
+
     seatProcess();
 
     if(first)
@@ -126,10 +132,6 @@ void MainWindow::timing()
         }
     }
     ui->plainTextEdit->setPlainText(FaceLogic::fetchJudgedMessage());
-
-
-
-
 }
 
 void MainWindow::on_MainWindow_destroyed()
@@ -148,6 +150,11 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_pushButton_4_clicked()
 {
+    if ("" == ui->COMComboBox->currentText())
+    {
+        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
+        return;
+    }
 
     if(ui->pushButton_4->text()=="Start")
     {
@@ -161,14 +168,32 @@ void MainWindow::on_pushButton_4_clicked()
         try
         {
             openCamera();
-            qDebug() << "Start seat init";
-            SitLogic::init();
-            qDebug() << "Finish seat init";
         }catch(const QString & e)
         {
             QMessageBox::information(this,"error",e);
             return;
         }
+
+        CSerialReader* p_reader = CSerialReader::getReader();
+        p_reader->OpenSerial(ui->COMComboBox->currentText());
+
+        CPredictor* p_predictor = CPredictor::getPredictor();
+        Predictor p;
+        try{
+            p = DAO::query(Session::user);
+        }catch (const QString& e)
+        {
+            QMessageBox::information(this, "Model error", e);
+            return;
+        }
+
+        QFile f("temp.xml");
+        f.open(QIODevice::WriteOnly);
+        f.write(p.xml);
+        f.close();
+        p_predictor->mp_trees = Algorithm::load<RTrees>("temp.xml");
+
+        qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
 
         //定时截屏
         qDebug() << "Start timer";
@@ -179,13 +204,22 @@ void MainWindow::on_pushButton_4_clicked()
     {
         qDebug() << "Stop timer";
         timer->stop();
+
+        CSerialReader* p_reader = CSerialReader::getReader();
+        p_reader->CloseSerial();
+
         ui->pushButton_4->setText("Start");
     }
 }
 
 void MainWindow::on_actionTrain_triggered()
 {
-    collectDialog c;
-    c.show();
+    if ("" == ui->COMComboBox->currentText())
+    {
+        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
+        return;
+    }
+
+    collectDialog c(ui->COMComboBox->currentText(), this);
     c.exec();
 }

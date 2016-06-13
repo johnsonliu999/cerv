@@ -6,10 +6,6 @@
 #include "Log.h"
 #include "DAO.h"
 
-
-
-
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

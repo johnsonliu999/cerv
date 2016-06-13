@@ -5,8 +5,8 @@
 #include <QDebug>
 #include <QThread>
 
-collectDialog::collectDialog(QWidget *parent) :
-    QDialog(parent),
+collectDialog::collectDialog(QString &portName, QWidget *parent) :
+    QDialog(parent),portName(portName),
     ui(new Ui::collectDialog)
 {
     ui->setupUi(this);
@@ -25,23 +25,24 @@ collectDialog::~collectDialog()
     delete ui;
 }
 
+#include "cserialreader.h"
 void collectDialog::on_buttonStart_clicked()
 {
-    CPredictor* predictor = CPredictor::getPredictor();
-    predictor->moveToThread(&predictor->collectThread);
-    predictor->collectThread.start();
+    CPredictor* p_predictor = CPredictor::getPredictor();
+    p_predictor->moveToThread(&p_predictor->collectThread);
+    p_predictor->collectThread.start();
+
+
     ui->buttonStart->setEnabled(false);
+
     int res = QMessageBox::question(this, "Choice", "Would you like to load the train model?", QMessageBox::Yes, QMessageBox::No);
     if (res == QMessageBox::Yes)
-    {
         emit tryLoadModel();
-//        ui->progressBar->setMinimum(0);
-//        ui->progressBar->setMaximum(0);
-    }
     else if (res == QMessageBox::No)
     {
-
-        emit startTrain();
+        res = QMessageBox::question(this, "Question", "Wired?", QMessageBox::Yes, QMessageBox::No);
+        bool wired = ( (res == QMessageBox::Yes ) ? true : false);
+        emit startTrain(portName, wired);
     }
 }
 

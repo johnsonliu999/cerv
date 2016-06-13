@@ -17,14 +17,13 @@ public:
     SitLogic();
 
     static  QList<CPredictor::eSitType> getSitType();
-    static void init();
     static void readOnce();
     static CPredictor::eSitType getAverageType();
     static  QString fetchJudgedMessage(CPredictor::eSitType sitType);
 
 private:
-    static    CPredictor* predictor;
-    static    CSerialReader* reader;
+    static    CPredictor* p_predictor;
+    static    CSerialReader* p_reader;
     static    QList<CPredictor::eSitType> stType;
 };
 

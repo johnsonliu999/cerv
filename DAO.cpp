@@ -133,13 +133,16 @@ void DAO::insert(const Predictor &predictor)
     db.transaction();
     QSqlQuery query;
 
-    query.prepare("insert into table predictor(xml,userid) values(:xml,:userid)");
-    query.bindValue(":xml",predictor.xml);
-    query.bindValue(":userid",predictor.user.userid);
+    query.prepare("insert into predictor(xml,userid) values(?,?)");
+    QVariant va(predictor.xml);
+    query.addBindValue(va);
+    query.addBindValue(predictor.user.userid);
     query.exec();
 
     db.commit();
     db.close();
+
+    qDebug() << "Finished insert predictor model.";
 }
 
 ///
@@ -165,8 +168,13 @@ Predictor DAO::query(const User &user)
         p.user =user;
         p.xml =query.value("xml").toByteArray();
     }
+    else
+    {
+        db.close();
+        throw QString("No predictor model exist.");
+    }
 
-     db.close();
-     return p;
+    db.close();
+    return p;
 }
 
