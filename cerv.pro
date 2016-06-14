@@ -28,7 +28,8 @@ FORMS += \
     logdialog.ui \
     MainWindow.ui \
     registerdialog.ui \
-    ReportWindow.ui
+    ReportWindow.ui \
+    connectdialog.ui
 
 INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
 D:/Download/OpenCV/opencv/build/include/opencv \
@@ -52,7 +53,8 @@ HEADERS += \
     SitLogic.h \
     TotalLogic.h \
     User.h \
-    Utils.h
+    Utils.h \
+    connectdialog.h
 
 SOURCES += \
     capture.cpp \
@@ -68,7 +70,8 @@ SOURCES += \
     MySession.cpp \
     registerdialog.cpp \
     ReportWindow.cpp \
-    SitLogic.cpp
+    SitLogic.cpp \
+    connectdialog.cpp
 
 
 DISTFILES += \

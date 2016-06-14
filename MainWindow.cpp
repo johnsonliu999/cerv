@@ -19,11 +19,15 @@
 #include <QList>
 #include <QSerialPortInfo>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
+#include "connectdialog.h"
+
+MainWindow::MainWindow(bool wired, QWidget *parent) :
+    QMainWindow(parent), wired(wired),
     ui(new Ui::MainWindow),timer(new QTimer)
 {
     ui->setupUi(this);
+
+    if (wired) ui->connectButton->~QPushButton();
 
     QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
     ui->COMComboBox->setCurrentText("None");
@@ -31,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->COMComboBox->addItem(portList[i].portName());
 
     connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -222,4 +229,35 @@ void MainWindow::on_actionTrain_triggered()
 
     collectDialog c(ui->COMComboBox->currentText(), this);
     c.exec();
+}
+
+void MainWindow::on_connectButton_clicked()
+{
+    if ("" == ui->COMComboBox->currentText())
+    {
+        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
+        return;
+    }
+
+    // open serial port
+    CSerialReader* p_reader = CSerialReader::getReader();
+    QList<QString> devList;
+    try{
+        p_reader->OpenSerial(ui->COMComboBox->currentText());
+        devList = CSerialReader::findDev();
+        if (devList.empty())
+        {
+            QMessageBox::information(this, "Error", "No device found", QMessageBox::Ok);
+            return;
+        }
+    } catch (const QString& e)
+    {
+        QMessageBox::information(this, "Error", e, QMessageBox::Ok);
+        return;
+    }
+
+    connectDialog c(devList);
+    c.exec();
+
+    p_reader->CloseSerial();
 }

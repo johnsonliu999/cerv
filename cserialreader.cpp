@@ -10,6 +10,7 @@
 #include <QByteArray>
 
 CSerialReader* CSerialReader::m_pReader = NULL;
+QSerialPort CSerialReader::m_port;
 
 ///
 /// \brief CSerialReader::CSerialReader
@@ -30,54 +31,16 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 {
     qDebug() << "Going to connect device at " + cDevAddr;
 
-    if (isConnected())
-    {
-        return;
-    }
-
-    /*** send inquery device ***/
-
-    if (-1 == m_port.write("at+inq\r\n"))
-    {
-        throw QString("connect serial port error");
-    }
-
-    qDebug() << "Wait for inquery response data";
-    if (-1 == m_port.waitForReadyRead(2000))
-    {
-        throw QString("connect serial port error");
-    }
-
-    QByteArray iByteArray = "";
-    // "INQ" stand for end of inquery
-
-    while (m_port.waitForReadyRead(5000))
-        iByteArray += m_port.read(100);
-
-    qDebug() << iByteArray;
-
-    if (!iByteArray.contains("INQE"))
-    {
-        throw QString("connect serial port error");
-    }
-
-    //qDebug() << "Received: " << iByteArray;
-    if (!iByteArray.contains(cDevAddr.toLatin1()))
-    {
-        throw QString("Device not found");
-    }
-
+    if (isConnected())  return;
 
     /*** connect device ***/
     qDebug() << "Device found, try to connect";
     // try to connect the device
     if (-1 == m_port.write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
-    {
        throw QString("Error write conna");
-    }
 
     qDebug() << "Wait for receive cona info";
-    if (-1 == m_port.waitForReadyRead(2000))
+    if (!m_port.waitForReadyRead(2000))
         throw QString("long wait");
 
 }
@@ -94,6 +57,41 @@ bool CSerialReader::isConnected()
         return true;
     else
         return false;
+}
+
+///
+/// \brief CSerialReader::findDev
+/// \return
+///
+QList<QString> CSerialReader::findDev()
+{
+    if(isConnected())
+        throw QString("Device has been connected.");
+
+    if (-1 == m_port.write("at+inq\r\n"))
+        throw QString("Port write error.");
+
+    if (!m_port.waitForReadyRead(2000))
+        throw QString("Time out");
+
+    QByteArray res;
+    while (m_port.waitForReadyRead(5000))
+        res += m_port.read(100);
+
+    if (!res.contains("INQE"))
+        throw QString("Not find inquery end.");
+
+    QList<QString> devList;
+    QRegExp rx(":\\d\\s(0x[0-9A-Z]{12})");
+    //rx.setMinimal(true);
+    int pos = 0;
+    while ((pos = rx.indexIn(QString(res), pos)) != -1)
+    {
+        devList << rx.cap(1);
+        pos += rx.matchedLength();
+    }
+
+    return devList;
 }
 
 /**

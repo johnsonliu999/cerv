@@ -252,8 +252,6 @@ void CPredictor::trainData(QString portName, bool wired)
         CSerialReader* p_reader = CSerialReader::getReader();
         p_reader->OpenSerial(portName);
 
-        if (!wired)p_reader->ConnectDevice();
-
         for (int i = 0; i < nSitTypeNumber; i++)
         {
             emit information("Collect information", "Going to collect " + getSitString(i) + " data");

@@ -31,11 +31,13 @@ public:
     void OpenSerial(QString &portName);
     void CloseSerial();
     const QList<QList<int> > ReadSerial();
-    void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
-    bool isConnected();
+
+    static void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
+    static bool isConnected();
+    static QList<QString> findDev();
 
 private:
-    QSerialPort m_port; ///< store current port.
+    static QSerialPort m_port; ///< store current port.
     static CSerialReader* m_pReader; ///< singleton mode, store CSerialReader object.
 
 private:

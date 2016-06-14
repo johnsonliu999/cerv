@@ -12,7 +12,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(bool wired, QWidget *parent = 0);
     ~MainWindow();
 
     void shakeFrm();
@@ -35,9 +35,12 @@ private slots:
 
     void on_calendarWidget_clicked(const QDate &date);
 
+    void on_connectButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     QTimer* timer;
+    const bool wired;
 };
 
 #endif // MAINWINDOW_H
