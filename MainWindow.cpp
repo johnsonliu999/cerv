@@ -194,11 +194,7 @@ void MainWindow::on_pushButton_4_clicked()
             return;
         }
 
-        QFile f("temp.xml");
-        f.open(QIODevice::WriteOnly);
-        f.write(p.xml);
-        f.close();
-        p_predictor->mp_trees = Algorithm::load<RTrees>("temp.xml");
+        p_predictor->mp_trees = Algorithm::loadFromString<RTrees>((String)p.xml.toStdString());
 
         qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
 
@@ -227,8 +223,25 @@ void MainWindow::on_actionTrain_triggered()
         return;
     }
 
-    collectDialog c(ui->COMComboBox->currentText(), this);
+    bool b_replace = false;
+
+    try{
+        Predictor p = DAO::query(Session::user);
+        if (p.id)
+        {
+            int res = QMessageBox::question(this, "Predictor model detected.", "Would you like to replace the existed model?", QMessageBox::Yes, QMessageBox::No);
+            if (res == QMessageBox::No) return;
+            else b_replace = true;
+        }
+    } catch (const QString& e)
+    {
+        QMessageBox::information(this, "Error", e, QMessageBox::Ok);
+        return ;
+    }
+
+    collectDialog c(ui->COMComboBox->currentText(), b_replace);
     c.exec();
+
 }
 
 void MainWindow::on_connectButton_clicked()

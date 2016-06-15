@@ -18,7 +18,7 @@ connectDialog::~connectDialog()
 #include "cserialreader.h"
 #include <QMessageBox>
 void connectDialog::on_okButton_clicked()
-{\
+{
     try{
         CSerialReader::ConnectDevice(ui->listWidget->currentItem()->text());
 
@@ -27,6 +27,8 @@ void connectDialog::on_okButton_clicked()
         QMessageBox::information(this, "Connect Error", e, QMessageBox::Ok);
         return;
     }
+
+    QMessageBox::information(this, "Connect", "Connect Finished. Please refer to the device light.", QMessageBox::Ok);
 
     accept();
 }

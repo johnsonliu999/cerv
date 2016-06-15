@@ -180,10 +180,8 @@ const QList< QList<int> > CSerialReader::ReadSerial()
 
     // 读取前需要设置阻塞
     if (!m_port.waitForReadyRead(5000))
-    {
-        qDebug() << "No data read in 5s";
-        return QList< QList<int> >();
-    }
+        throw QString("No data read in 5s");
+
     m_port.read(buffer, 5000);
 
     // 提取完整数据，需要满足以#开头，*结尾，20个数据

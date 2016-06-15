@@ -215,7 +215,7 @@ void CPredictor::loadFromDB(const User& user)
 
 
 #include <QFile>
-void CPredictor::save2DB()
+void CPredictor::save2DB(bool b_replace)
 {
      mp_trees->save("temp.xml");
 
@@ -227,9 +227,8 @@ void CPredictor::save2DB()
      f.open(QIODevice::ReadOnly);
      p.xml  =f.readAll();
 
-     DAO::insert(p);
-
-
+     if (b_replace) DAO::update(p);
+     else DAO::insert(p);
 
      f.remove();
 }
@@ -245,7 +244,7 @@ bool CPredictor::isTrained()
     return   mp_trees->isTrained();
 }
 
-void CPredictor::trainData(QString portName, bool wired)
+void CPredictor::trainData(QString portName, const bool b_replace)
 {
 
     try{
@@ -276,7 +275,7 @@ void CPredictor::trainData(QString portName, bool wired)
         return;
     }
 
-    save2DB();
+    save2DB(b_replace);
 }
 
 void CPredictor::tryLoadModel()

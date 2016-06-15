@@ -28,6 +28,7 @@ public:
 
     static void insert(const Predictor& predictor);
     static Predictor query(const User& user);
+    static void update(const Predictor &predictor);
 };
 
 #endif // DAO_H

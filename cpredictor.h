@@ -42,7 +42,7 @@ public:
 
     eSitType Predict(const QList<int> & iPredictData);
     void loadFromDB(const User &user);
-    void save2DB();
+    void save2DB(bool r_replace);
     void train();
     bool isTrained();
     // void beginReceiveData();
@@ -69,7 +69,7 @@ signals:
     void critial(const QString title, const QString content);
 
 public slots:
-    void trainData(QString portName, bool wired);
+    void trainData(QString portName, const bool b_replace);
     void tryLoadModel();
 
 

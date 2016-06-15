@@ -178,3 +178,21 @@ Predictor DAO::query(const User &user)
     return p;
 }
 
+///
+/// \brief DAO::update
+/// \param predictor
+///
+void DAO::update(const Predictor& predictor)
+{
+    QSqlDatabase db = CDatabase::getDB();
+    QSqlQuery query;
+
+    query.prepare("update predictor set xml = ? where userid = ?");
+    QVariant va(predictor.xml);
+    query.addBindValue(va);
+    query.addBindValue(predictor.user.userid);
+    query.exec();
+
+    db.close();
+}
+

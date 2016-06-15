@@ -5,8 +5,8 @@
 #include <QDebug>
 #include <QThread>
 
-collectDialog::collectDialog(QString &portName, QWidget *parent) :
-    QDialog(parent),portName(portName),
+collectDialog::collectDialog(const QString &portName, const bool b_replace, QWidget *parent) :
+    QDialog(parent),portName(portName), b_replace(b_replace),
     ui(new Ui::collectDialog)
 {
     ui->setupUi(this);
@@ -32,18 +32,8 @@ void collectDialog::on_buttonStart_clicked()
     p_predictor->moveToThread(&p_predictor->collectThread);
     p_predictor->collectThread.start();
 
-
     ui->buttonStart->setEnabled(false);
-
-    int res = QMessageBox::question(this, "Choice", "Would you like to load the train model?", QMessageBox::Yes, QMessageBox::No);
-    if (res == QMessageBox::Yes)
-        emit tryLoadModel();
-    else if (res == QMessageBox::No)
-    {
-        res = QMessageBox::question(this, "Question", "Wired?", QMessageBox::Yes, QMessageBox::No);
-        bool wired = ( (res == QMessageBox::Yes ) ? true : false);
-        emit startTrain(portName, wired);
-    }
+    emit startTrain(portName, b_replace);
 }
 
 void collectDialog::setPercent(int percent)

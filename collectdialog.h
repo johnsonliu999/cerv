@@ -14,11 +14,11 @@ class collectDialog : public QDialog
     Q_OBJECT
     QThread collectThread;
 public:
-    explicit collectDialog(QString& portName, QWidget *parent = 0);
+    explicit collectDialog(const QString& portName, bool b_replace, QWidget *parent = 0);
     ~collectDialog();
 
 signals:
-    void startTrain(QString portName, bool wired);
+    void startTrain(const QString portName, const bool b_replace);
     void tryLoadModel();
 
 private slots:
@@ -30,7 +30,8 @@ public slots:
 
 private:
     Ui::collectDialog *ui;
-    QString& portName;
+    const QString& portName;
+    const bool b_replace;
 };
 
 #endif // COLLECTDIALOG_H
