@@ -22,6 +22,7 @@ collectDialog::collectDialog(const QString &portName, const bool b_replace, QWid
 
 collectDialog::~collectDialog()
 {
+    collectThread.exit();
     delete ui;
 }
 
@@ -29,8 +30,8 @@ collectDialog::~collectDialog()
 void collectDialog::on_buttonStart_clicked()
 {
     CPredictor* p_predictor = CPredictor::getPredictor();
-    p_predictor->moveToThread(&p_predictor->collectThread);
-    p_predictor->collectThread.start();
+    p_predictor->moveToThread(&collectThread);
+    collectThread.start();
 
     ui->buttonStart->setEnabled(false);
     emit startTrain(portName, b_replace);

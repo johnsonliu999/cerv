@@ -12,7 +12,6 @@ class collectDialog;
 class collectDialog : public QDialog
 {
     Q_OBJECT
-    QThread collectThread;
 public:
     explicit collectDialog(const QString& portName, bool b_replace, QWidget *parent = 0);
     ~collectDialog();
@@ -32,6 +31,8 @@ private:
     Ui::collectDialog *ui;
     const QString& portName;
     const bool b_replace;
+
+    QThread collectThread;
 };
 
 #endif // COLLECTDIALOG_H

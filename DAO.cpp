@@ -137,7 +137,12 @@ void DAO::insert(const Predictor &predictor)
     QVariant va(predictor.xml);
     query.addBindValue(va);
     query.addBindValue(predictor.user.userid);
-    query.exec();
+    if (!query.exec())
+    {
+        db.rollback();
+        db.close();
+        throw QString("Insert predictor error.");
+    }
 
     db.commit();
     db.close();
@@ -191,7 +196,15 @@ void DAO::update(const Predictor& predictor)
     QVariant va(predictor.xml);
     query.addBindValue(va);
     query.addBindValue(predictor.user.userid);
-    query.exec();
+    if (!query.exec())
+    {
+        db.close();
+        throw QString("Update error.");
+    }
+
+    qDebug() << "" + query.lastQuery();
+    qDebug() << query.numRowsAffected() << "rows affected.";
+    qDebug() << "update predictor succeed.";
 
     db.close();
 }

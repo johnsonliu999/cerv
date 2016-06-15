@@ -9,9 +9,9 @@
 /*! detail description */
 // #define BT_ID 8963
 
-#define BT_ID 29987
-#define ARDUINO_ID 67
-#define BT_ADDR "0x00158300428D"
+const int BT_ID = 29987;
+const int ARDUINO_ID = 67;
+const QString BT_ADDR = "0x00158300428D";
 
 
 /// 单例模式： 串口通信类（只读）
@@ -37,8 +37,8 @@ public:
     static QList<QString> findDev();
 
 private:
-    static QSerialPort m_port; ///< store current port.
-    static CSerialReader* m_pReader; ///< singleton mode, store CSerialReader object.
+    static QSerialPort* mp_port; ///< store current port.
+    static CSerialReader* mp_reader; ///< singleton mode, store CSerialReader object.
 
 private:
     CSerialReader(); ///< private constructor. Since singleton mode.

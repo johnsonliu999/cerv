@@ -257,7 +257,7 @@ void MainWindow::on_connectButton_clicked()
     QList<QString> devList;
     try{
         p_reader->OpenSerial(ui->COMComboBox->currentText());
-        devList = CSerialReader::findDev();
+        devList = p_reader->findDev();
         if (devList.empty())
         {
             QMessageBox::information(this, "Error", "No device found", QMessageBox::Ok);

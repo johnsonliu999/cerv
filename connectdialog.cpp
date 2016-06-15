@@ -19,9 +19,9 @@ connectDialog::~connectDialog()
 #include <QMessageBox>
 void connectDialog::on_okButton_clicked()
 {
+    CSerialReader* p_reader = CSerialReader::getReader();
     try{
-        CSerialReader::ConnectDevice(ui->listWidget->currentItem()->text());
-
+        p_reader->ConnectDevice(ui->listWidget->currentItem()->text());
     } catch(const QString& e)
     {
         QMessageBox::information(this, "Connect Error", e, QMessageBox::Ok);

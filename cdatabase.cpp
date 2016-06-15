@@ -41,12 +41,18 @@ const QSqlDatabase CDatabase::getDB()
 {
     if (db.isValid())
     {
-        if (db.isOpen() || db.open())
+        if (db.isOpen())
         {
-            qDebug() << "Connect database succeed";
+            qDebug() << "Database has already been opened.";
             return db;
         }
-        throw QString("Connect database failed, DB cannot use\n" + db.lastError().text());
+        else if (db.open())
+        {
+            qDebug() << "Opening Database succeed.";
+            return db;
+        }
+        else
+            throw QString("Opening database failed, DB cannot use\n" + db.lastError().text());
     }
     else
     {

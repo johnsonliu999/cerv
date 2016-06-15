@@ -8,8 +8,8 @@
 #include "DAO.h"
 #include "MySession.h"
 
-#define ATTRIBUTE_PRE_SAMPLE 20
-#define NUMBER_OF_TRAINING_SAMPLE_PER_CLASS 100
+const int ATTRIBUTE_PRE_SAMPLE = 20;
+const int NUMBER_OF_TRAINING_SAMPLE_PER_CLASS = 20;
 
 CPredictor* CPredictor::mp_predictor = NULL;
 int CPredictor::nSitTypeNumber = 5;

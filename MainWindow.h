@@ -26,10 +26,7 @@ private slots:
 
     void on_pushButton_4_clicked();
 
-    /*** seat operation ***/
-
     void seatProcess();
-    /**********************/
 
     void on_actionTrain_triggered();
 
