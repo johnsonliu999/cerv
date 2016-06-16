@@ -157,39 +157,41 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  *
  * @param type
  */
-void CPredictor::collectCertainType(eSitType type)
+void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
 {
-
-    CSerialReader* p_reader = CSerialReader::getReader();
-
     QList< QList<int> > iDataListList;
 
     // 每个类型的记录条数，用来判断是否达标
     int nTotalNumber = 0;
-
-    qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
-    // since the matrix start with 0
-    while (nTotalNumber + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
-    {
-        iDataListList = p_reader->ReadSerial();
-
-        int size = iDataListList.size();
-        if (nTotalNumber + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
-            size = NUMBER_OF_TRAINING_SAMPLE_PER_CLASS - nTotalNumber - 1;
-
-        for (int j = 0; j < size; j++)
+    try{
+        qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
+        // since the matrix start with 0
+        while (nTotalNumber + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
         {
-            for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
+            iDataListList = reader.readSerial();
+
+            int size = iDataListList.size();
+            if (nTotalNumber + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
+                size = NUMBER_OF_TRAINING_SAMPLE_PER_CLASS - nTotalNumber - 1;
+
+            for (int j = 0; j < size; j++)
             {
-                iData.at<float>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, k) = static_cast<float>(iDataListList[j][k]);
+                for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
+                {
+                    iData.at<float>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, k) = static_cast<float>(iDataListList[j][k]);
+                }
+                iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, 0) = static_cast<int>(type);
             }
-            iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, 0) = static_cast<int>(type);
+            nTotalNumber += size;
+            qDebug() << "collected" << nTotalNumber;
+            emit percentChanged((int)(((float)nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 100));
+            QThread::sleep(5);
         }
-        nTotalNumber += size;
-        qDebug() << "collected" << nTotalNumber;
-        emit percentChanged((int)(((float)nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 100));
-        QThread::sleep(5);
+    } catch (const QString& e)
+    {
+        emit information("collectCertainType", e);
     }
+
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
 
 }
@@ -265,20 +267,19 @@ bool CPredictor::isTrained()
     return   mp_trees->isTrained();
 }
 
-void CPredictor::trainData(QString portName, const bool b_replace)
+void CPredictor::trainData(const QString portName, const bool b_replace)
 {
-
     try{
-        CSerialReader* p_reader = CSerialReader::getReader();
-        p_reader->OpenSerial(portName);
+        CSerialReader reader(portName);
+        QSerialPort* p_port = reader.getPort();
 
         for (int i = 0; i < nSitTypeNumber; i++)
         {
             emit information("Collect information", "Going to collect " + getSitString(i) + " data");
-            collectCertainType((eSitType)i);
+            collectCertainType(reader, (eSitType)i);
         }
 
-        p_reader->CloseSerial();
+        p_port->close();
         emit information("Collect information", "Finished collect");
 
     }catch (const QString & e)

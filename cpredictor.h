@@ -25,6 +25,8 @@ using namespace cv::ml;
 
 #include "cdatabase.h"
 
+class CSerialReader;
+
 ///
 /// \brief The CPredictor class provide method to collect, train, store and predict.
 ///
@@ -55,7 +57,7 @@ public:
     void save2DB(bool r_replace);
     void train();
     bool isTrained();
-    void collectCertainType(eSitType type);
+    void collectCertainType(const CSerialReader&, eSitType type);
     void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
 
 public slots:

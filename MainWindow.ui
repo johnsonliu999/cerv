@@ -584,7 +584,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>560</x>
@@ -604,7 +604,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="COMComboBox"/>
+        <widget class="QComboBox" name="COMComboBox">
+         <property name="editable">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer">
@@ -641,8 +645,6 @@
    <zorder>layoutWidget</zorder>
    <zorder>layoutWidget</zorder>
    <zorder>calendarWidget</zorder>
-   <zorder>connectButton</zorder>
-   <zorder>COMComboBox</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

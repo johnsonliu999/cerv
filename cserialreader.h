@@ -13,13 +13,6 @@ const int BT_ID = 29987;
 const int ARDUINO_ID = 67;
 const QString BT_ADDR = "0x00158300428D";
 
-
-/// 单例模式： 串口通信类（只读）
-/// 使用方法： 先获取单例，open（）--> connectDevice() --> readSerial -->closeSerial().
-/// 唯一有用的接口： readSerial（）
-/// 所有错误都以异常抛出
-
-
 ///
 /// \brief The CSerialReader class
 /// provides access to the serial port
@@ -28,22 +21,20 @@ class CSerialReader
 {
 
 private:
-    static QSerialPort* mp_port; ///< store current port.
-    static CSerialReader* mp_reader; ///< singleton mode, store CSerialReader object.
+    QSerialPort* mp_port; ///< store current port.
 
 public:
-    static CSerialReader* getReader();
-    void OpenSerial(QString &portName);
-    void CloseSerial();
-    const QList<QList<int> > ReadSerial();
+    CSerialReader(const QString& portName);
+    ~CSerialReader();
 
-    static void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
-    static bool isConnected();
-    static QList<QString> findDev();
+    QSerialPort *getPort();
+    void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
+    bool isConnected();
+    QList<QString> findDev();
+    const QList<QList<int> > readSerial() const;
 
 private:
-    CSerialReader(); ///< private constructor. Since singleton mode.
-    const QList<QList<int> > __ParseData(const QStringList & iStringList);
+    static const QList<QList<int> > __ParseData(const QStringList & iStringList);
 
 };
 

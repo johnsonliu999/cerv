@@ -12,15 +12,12 @@ collectDialog::collectDialog(const QString &portName, const bool b_replace, QWid
     ui->setupUi(this);
     CPredictor* predictor = CPredictor::getPredictor();
 
-    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent, Qt::QueuedConnection);
-    connect(predictor, &CPredictor::critial, this, &collectDialog::presentCritical, Qt::BlockingQueuedConnection);
+    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
     connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation, Qt::BlockingQueuedConnection);
     connect(predictor, &CPredictor::finishedTrain, this, &collectDialog::accept);
 
-    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData, Qt::QueuedConnection);
-    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel, Qt::QueuedConnection);
-
-
+    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData);
+    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel);
 }
 
 

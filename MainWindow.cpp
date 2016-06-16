@@ -30,7 +30,7 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     if (wired) ui->connectButton->~QPushButton();
 
     QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
-    ui->COMComboBox->setCurrentText("None");
+
     for (int i = 0; i < portList.length(); i++)
         ui->COMComboBox->addItem(portList[i].portName());
 
@@ -59,7 +59,8 @@ void MainWindow::seatProcess()
 {
     QString seatResultDisplayString = "";    
 
-    SitLogic::readOnce();
+    SitLogic::readOnce(ui->COMComboBox->currentText());
+
     for(auto res : SitLogic::getSitType())
     {
         seatResultDisplayString=SitLogic::fetchJudgedMessage(res)+"\n";
@@ -67,9 +68,6 @@ void MainWindow::seatProcess()
 
     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
 }
-
-
-
 
 void MainWindow::shakeFrm()
 {
@@ -174,47 +172,32 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_pushButton_4_clicked()
 {
-    if ("" == ui->COMComboBox->currentText())
-    {
-        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
-        return;
-    }
+
 
     if(ui->pushButton_4->text()=="Start")
     {
-        if(!isAllowCameraOpen())
-        {
-            QMessageBox::StandardButton bt =QMessageBox::information(this,"open Camera",tr("this application requests to open your camera,do you agree?"),QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-            if(bt==QMessageBox::No) return;
-            allowCameraOpen();
-        }
+        ui->COMComboBox->setEnabled(false);
+        QString portName(ui->COMComboBox->currentText());
         try
         {
             openCamera();
-        }catch(const QString & e)
-        {
-            QMessageBox::information(this,"error",e);
-            return;
-        }
+            if ("" == portName) throw QString("No selected COM.");
 
-        CSerialReader* p_reader = CSerialReader::getReader();
-        p_reader->OpenSerial(ui->COMComboBox->currentText());
-
-        CPredictor* p_predictor = CPredictor::getPredictor();
-        Predictor p;
-        try{
+            Predictor p;
             QSqlDatabase db = m_db.getDB();
             p = DAO::query(db, Session::user);
             db.close();
+
+            CPredictor* p_predictor = CPredictor::getPredictor();
+            p_predictor->mp_trees = Algorithm::loadFromString<RTrees>((String)p.xml.toStdString());
+
         }catch (const QString& e)
         {
             QMessageBox::information(this, "Model error", e);
             return;
         }
 
-        p_predictor->mp_trees = Algorithm::loadFromString<RTrees>((String)p.xml.toStdString());
-
-        qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
+        //qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
 
         //定时截屏
         qDebug() << "Start timer";
@@ -225,25 +208,18 @@ void MainWindow::on_pushButton_4_clicked()
     {
         qDebug() << "Stop timer";
         timer->stop();
-
-        CSerialReader* p_reader = CSerialReader::getReader();
-        p_reader->CloseSerial();
-
+        ui->COMComboBox->setEnabled(true);
         ui->pushButton_4->setText("Start");
     }
 }
 
 void MainWindow::on_actionTrain_triggered()
 {
-    if ("" == ui->COMComboBox->currentText())
-    {
-        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
-        return;
-    }
-
+    QString portName(ui->COMComboBox->currentText());
     bool b_replace = false;
 
     try{
+        if ("" == portName) throw QString("No selected COM");
         QSqlDatabase db = m_db.getDB();
         Predictor p = DAO::query(db, Session::user);
         db.close();
@@ -255,29 +231,31 @@ void MainWindow::on_actionTrain_triggered()
         }
     } catch (const QString& e)
     {
-        QMessageBox::information(this, "Error", e, QMessageBox::Ok);
+        QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
         return ;
     }
 
-    collectDialog c(ui->COMComboBox->currentText(), b_replace);
+    ui->COMComboBox->setEnabled(false);
+
+    collectDialog c(portName, b_replace);
     c.exec();
+
+    ui->COMComboBox->setEnabled(true);
 
 }
 
 void MainWindow::on_connectButton_clicked()
 {
-    if ("" == ui->COMComboBox->currentText())
-    {
-        QMessageBox::information(this, "Error", "No COM selected.", QMessageBox::Ok);
-        return;
-    }
+    QString portName(ui->COMComboBox->currentText());
 
     // open serial port
-    CSerialReader* p_reader = CSerialReader::getReader();
     QList<QString> devList;
     try{
-        p_reader->OpenSerial(ui->COMComboBox->currentText());
-        devList = p_reader->findDev();
+        if ("" == portName) throw QString("No selected COM.");
+        CSerialReader reader(portName);
+        QSerialPort* p_port = reader.getPort();
+        devList = reader.findDev();
+        p_port->close();
         if (devList.empty())
         {
             QMessageBox::information(this, "Error", "No device found", QMessageBox::Ok);
@@ -289,8 +267,6 @@ void MainWindow::on_connectButton_clicked()
         return;
     }
 
-    connectDialog c(devList);
+    connectDialog c(portName, devList);
     c.exec();
-
-    p_reader->CloseSerial();
 }

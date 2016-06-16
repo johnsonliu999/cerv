@@ -9,15 +9,14 @@
 #include <QThread>
 #include <QByteArray>
 
-CSerialReader* CSerialReader::mp_reader;
-QSerialPort* CSerialReader::mp_port = new QSerialPort;
-
-///
-/// \brief CSerialReader::CSerialReader
-/// private constructor.
-///
-CSerialReader::CSerialReader()
+CSerialReader::CSerialReader(const QString &portName) :
+    mp_port(new QSerialPort(portName))
 {
+}
+
+CSerialReader::~CSerialReader()
+{
+
 }
 
 /**
@@ -29,6 +28,8 @@ CSerialReader::CSerialReader()
  */
 void CSerialReader::ConnectDevice(const QString &cDevAddr)
 {
+    QSerialPort* p_port = getPort();
+
     qDebug() << "Going to connect device at " + cDevAddr;
 
     if (isConnected())  return;
@@ -42,7 +43,7 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     qDebug() << "Wait for receive cona info";
     if (!mp_port->waitForReadyRead(2000))
         throw QString("long wait");
-
+    p_port->close();
 }
 
 /**
@@ -128,42 +129,25 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
 }
 
 /**
- * @brief CSerialReader::OpenSerial
- * 打开对应8963串口,如果已经打开也返回true
- * @param[in] portName passed to setPortName
+ * @brief CSerialReader::getPort
  *
  * @exception <QString e> {open serial port failed.}
- * @return ：打开成功返回true，否则false
+ * @return ：返回打开的port对象
  */
-void CSerialReader::OpenSerial(QString& portName)
+QSerialPort* CSerialReader::getPort()
 {
     if (mp_port->isOpen())
     {
-        if (mp_port->portName() == portName)
-        {
-            qDebug() << "Port has opened.";
-            return;
-        }
-        mp_port->close();
+        qDebug() << "Port has opened.";
+        return mp_port;
     }
 
-    mp_port->setPortName(portName);
     if (!mp_port->open(QSerialPort::ReadWrite))
-        throw QString("Open serial port failed.");
+        throw mp_port->errorString();
+
     qDebug() << "Open serial port succeed.";
+    return mp_port;
 }
-
-/**
- * @brief CSerialReader::CloseSerial
- * 关闭串口，如果没有打开也返回true
- *
- */
-void CSerialReader::CloseSerial()
-{
-    if(mp_port->isOpen())
-       mp_port->close();
-}
-
 
 /**
  * @brief CSerialReader::ReadSerial
@@ -172,7 +156,7 @@ void CSerialReader::CloseSerial()
  *
  * @return ：读取的数据,QStringList形式保存，每条为一次记录
  */
-const QList< QList<int> > CSerialReader::ReadSerial()
+const QList< QList<int> > CSerialReader::readSerial() const
 {
     QStringList iList;
 
@@ -198,16 +182,5 @@ const QList< QList<int> > CSerialReader::ReadSerial()
     }
 
     return __ParseData(iList);
-}
-
-///
-/// \brief CSerialReader::getReader
-/// \return pointer to CSerialReader object
-///
-CSerialReader* CSerialReader::getReader()
-{
-    if (mp_reader == NULL)
-        mp_reader = new CSerialReader();
-    return mp_reader;
 }
 

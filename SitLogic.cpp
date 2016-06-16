@@ -2,7 +2,6 @@
 
 QList<CPredictor::eSitType> SitLogic::stType = QList<CPredictor::eSitType>();
 CPredictor* SitLogic::p_predictor =CPredictor::getPredictor();
-CSerialReader* SitLogic::p_reader =CSerialReader::getReader();
 
 ///
 /// \brief SitLogic::getSitType return list of recent sit type.
@@ -17,10 +16,15 @@ QList<CPredictor::eSitType> SitLogic::getSitType()
 /// \brief SitLogic::readOnce
 /// read and store recent predicted type into stType.
 ///
-void SitLogic::readOnce()
+void SitLogic::readOnce(const QString& portName)
 {
-    for(auto data : p_reader->ReadSerial())
+    CSerialReader reader(portName);
+    QSerialPort* p_port = reader.getPort();
+
+    for(auto data : reader.readSerial())
         stType.append(p_predictor->Predict(data));
+
+    p_port->close();
 }
 
 ///
