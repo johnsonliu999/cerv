@@ -26,6 +26,11 @@ const QString BT_ADDR = "0x00158300428D";
 ///
 class CSerialReader
 {
+
+private:
+    static QSerialPort* mp_port; ///< store current port.
+    static CSerialReader* mp_reader; ///< singleton mode, store CSerialReader object.
+
 public:
     static CSerialReader* getReader();
     void OpenSerial(QString &portName);
@@ -35,10 +40,6 @@ public:
     static void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
     static bool isConnected();
     static QList<QString> findDev();
-
-private:
-    static QSerialPort* mp_port; ///< store current port.
-    static CSerialReader* mp_reader; ///< singleton mode, store CSerialReader object.
 
 private:
     CSerialReader(); ///< private constructor. Since singleton mode.

@@ -10,6 +10,8 @@
 #include <QDate>
 #include <QString>
 
+class QSqlDatabase;
+
 /**
    all data access interface defined here.
 */
@@ -20,15 +22,15 @@
 class DAO
 {
 public:
-    static void insert(const Log& log);
-    static  QList<Log> query(const QDate& date,const User& user);
-    static bool insert(const User& user);
+    static void insert(QSqlDatabase &db, const Log& log);
+    static  QList<Log> query(QSqlDatabase& db, const QDate& date, const User& user);
+    static bool insert(QSqlDatabase &db, const User& user);
 	
-    static bool query(const QString& username,int& id);
+    static bool query(QSqlDatabase& db, const QString& username,int& id);
 
-    static void insert(const Predictor& predictor);
-    static Predictor query(const User& user);
-    static void update(const Predictor &predictor);
+    static void insert(QSqlDatabase& db, const Predictor& predictor);
+    static Predictor query(QSqlDatabase& db, const User& user);
+    static void update(QSqlDatabase& db, const Predictor &predictor);
 };
 
 #endif // DAO_H

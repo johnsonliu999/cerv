@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QTimer>
+
+#include "cdatabase.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -38,6 +41,8 @@ private:
     Ui::MainWindow *ui;
     QTimer* timer;
     const bool wired;
+
+    CDatabase m_db;
 };
 
 #endif // MAINWINDOW_H

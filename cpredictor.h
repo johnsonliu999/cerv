@@ -23,6 +23,8 @@ using namespace cv::ml;
 
 */
 
+#include "cdatabase.h"
+
 ///
 /// \brief The CPredictor class provide method to collect, train, store and predict.
 ///
@@ -30,11 +32,19 @@ class CPredictor : public QObject
 {
     Q_OBJECT
 public:
-    static CPredictor* mp_predictor;
     Ptr<RTrees> mp_trees;
 
     enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
     static int nSitTypeNumber;
+
+private:
+    Mat  iData;
+    Mat  iLabel;
+    CDatabase m_db;
+
+    static CPredictor* mp_predictor;
+
+
 
 public:
     static CPredictor* getPredictor();
@@ -45,9 +55,7 @@ public:
     void save2DB(bool r_replace);
     void train();
     bool isTrained();
-    // void beginReceiveData();
     void collectCertainType(eSitType type);
-
     void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
 
 public slots:
@@ -57,11 +65,8 @@ public slots:
 protected:
     void __BuildRTrees(Mat & i_Data, Mat & i_Label);
 
-private:
-    Mat  iData;
-    Mat  iLabel;
-    int counter = 0;
 
+private:
     CPredictor();
     ~CPredictor();
 
@@ -69,6 +74,7 @@ signals:
     void percentChanged(int percent);
     void information(const QString title, const QString content);
     void critial(const QString title, const QString content);
+    void finishedTrain();
 };
 
 #endif // CPREDICTOR_H

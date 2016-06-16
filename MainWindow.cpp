@@ -36,12 +36,20 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
 
     connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
 
+    DBParams params;
+    params.database = "QMYSQL";
+    params.host = "localhost";
+    params.database = "neck";
+    params.user = "root";
+    params.password = "qq452977491";
+    params.port = 3306;
 
-
+    m_db = CDatabase("main_win", params);
 }
 
 MainWindow::~MainWindow()
 {
+    QSqlDatabase::removeDatabase("main_win");
     delete ui;
     delete timer;
 }
@@ -75,8 +83,6 @@ QTime start_t;
 QTime end_t;
 void MainWindow::timing()
 {
-
-
     ui->label->setPixmap(QPixmap::fromImage(detect()));
 
     seatProcess();
@@ -106,8 +112,14 @@ void MainWindow::timing()
             log.sit_type =SitLogic::getAverageType();
             log.user =Session::user;
 
-            DAO::insert(log);
-
+            try{
+                QSqlDatabase db = m_db.getDB();
+                DAO::insert(db, log);
+                db.close();
+            } catch (const QString& e)
+            {
+                QMessageBox::information(this, "Error", e, QMessageBox::Ok);
+            }
         }
 
         previous =FaceLogic::getRtType();
@@ -148,11 +160,16 @@ void MainWindow::on_MainWindow_destroyed()
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
-
-    QList<Log> logs =DAO::query(const_cast<QDate&>(date),Session::user);
-
-    ReportWindow* w =new ReportWindow(logs,this);
-    w->show();
+    try{
+        QSqlDatabase db = m_db.getDB();
+        QList<Log> logs =DAO::query(db, const_cast<QDate&>(date),Session::user);
+        db.close();
+        ReportWindow* w =new ReportWindow(logs,this);
+        w->show();
+    }catch (const QString& e)
+    {
+        QMessageBox::information(this, "Error", e, QMessageBox::Ok);
+    }
 }
 
 void MainWindow::on_pushButton_4_clicked()
@@ -168,8 +185,7 @@ void MainWindow::on_pushButton_4_clicked()
         if(!isAllowCameraOpen())
         {
             QMessageBox::StandardButton bt =QMessageBox::information(this,"open Camera",tr("this application requests to open your camera,do you agree?"),QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-            if(bt==QMessageBox::No)
-                return;
+            if(bt==QMessageBox::No) return;
             allowCameraOpen();
         }
         try
@@ -187,7 +203,9 @@ void MainWindow::on_pushButton_4_clicked()
         CPredictor* p_predictor = CPredictor::getPredictor();
         Predictor p;
         try{
-            p = DAO::query(Session::user);
+            QSqlDatabase db = m_db.getDB();
+            p = DAO::query(db, Session::user);
+            db.close();
         }catch (const QString& e)
         {
             QMessageBox::information(this, "Model error", e);
@@ -226,7 +244,9 @@ void MainWindow::on_actionTrain_triggered()
     bool b_replace = false;
 
     try{
-        Predictor p = DAO::query(Session::user);
+        QSqlDatabase db = m_db.getDB();
+        Predictor p = DAO::query(db, Session::user);
+        db.close();
         if (p.id)
         {
             int res = QMessageBox::question(this, "Predictor model detected.", "Would you like to replace the existed model?", QMessageBox::Yes, QMessageBox::No);

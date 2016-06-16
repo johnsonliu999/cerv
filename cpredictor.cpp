@@ -15,14 +15,22 @@ CPredictor* CPredictor::mp_predictor = NULL;
 int CPredictor::nSitTypeNumber = 5;
 
 
-
+#include "cdatabase.h"
 /**
    在构造的时候准备好两个成员变量  iData, iLabel
 */
 CPredictor::CPredictor():iData(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1),
     iLabel(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1)
 {
+    DBParams params;
+    params.database = "QMYSQL";
+    params.host = "localhost";
+    params.database = "neck";
+    params.user = "root";
+    params.password = "qq452977491";
+    params.port = 3306;
 
+    m_db = CDatabase("predictor", params);
 }
 
 CPredictor::~CPredictor()
@@ -64,7 +72,7 @@ CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
  */
 CPredictor *CPredictor::getPredictor()
 {
-    if(mp_predictor ==NULL)
+    if(!mp_predictor)
         mp_predictor =new CPredictor();
     return mp_predictor;
 }
@@ -207,30 +215,43 @@ void CPredictor::CollectDataRaw(CPredictor::eSitType type, const QList<QList<int
 
 void CPredictor::loadFromDB(const User& user)
 {
-
-     Predictor p =DAO::query(user);
-     if(p.id!=0)
+    try{
+        QSqlDatabase db = m_db.getDB();
+        Predictor p =DAO::query(db, user);
+        if(p.id!=0)
         mp_trees=mp_trees->loadFromString<RTrees>((String)p.xml.toStdString());
+        db.close();
+    } catch (const QString& e)
+    {
+        emit information("loadFromDB", e);
+    }
 }
 
 
 #include <QFile>
 void CPredictor::save2DB(bool b_replace)
 {
-     mp_trees->save("temp.xml");
 
-     //read file to database,and delete the temp file.
+    mp_trees->save("temp.xml");
 
-     Predictor p;
-     p.user =Session::user;
-     QFile f("temp.xml");
-     f.open(QIODevice::ReadOnly);
-     p.xml  =f.readAll();
+    //read file to database,and delete the temp file.
+    Predictor p;
+    p.user = Session::user;
+    QFile f("temp.xml");
+    f.open(QIODevice::ReadOnly);
+    p.xml = f.readAll();
+    try{
+        QSqlDatabase db = m_db.getDB();
+        if (b_replace) DAO::update(db, p);
+        else DAO::insert(db, p);
+        db.close();
+    } catch(const QString& e)
+    {
+        //f.remove();
+        emit information("Save2DB", e);
+    }
 
-     if (b_replace) DAO::update(p);
-     else DAO::insert(p);
-
-     f.remove();
+    //f.remove();
 }
 
 void CPredictor::train()
@@ -276,12 +297,16 @@ void CPredictor::trainData(QString portName, const bool b_replace)
     }
 
     save2DB(b_replace);
+    emit finishedTrain();
+
 }
 
 void CPredictor::tryLoadModel()
 {
     try{
-        Predictor p = DAO::query(Session::user);
+        QSqlDatabase db = m_db.getDB();
+        Predictor p = DAO::query(db, Session::user);
+        db.close();
         if (p.id != 0)
         {
             loadFromDB(Session::user);

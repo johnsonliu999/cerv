@@ -7,32 +7,46 @@
 #include <QDebug>
 #include "registerdialog.h"
 
+#include "cdatabase.h"
 LogDialog::LogDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LogDialog)
 {
     ui->setupUi(this);
+
+    DBParams params;
+    params.database = "QMYSQL";
+    params.host = "localhost";
+    params.database = "neck";
+    params.user = "root";
+    params.password = "qq452977491";
+    params.port = 3306;
+
+    m_db = CDatabase("login", params);
 }
 
 LogDialog::~LogDialog()
 {
+    QSqlDatabase::removeDatabase("login");
     delete ui;
 }
 
 void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
+
     if (ui->buttonBox->button(QDialogButtonBox::Ok) == (QPushButton*)button)
     {
         try{
+            QSqlDatabase db = m_db.getDB();
             int id;
-            if (DAO::query(ui->nameLineEdit->text(), id))
+            if (DAO::query(db, ui->nameLineEdit->text(), id))
             {
                 Session::user.userid = id; // to be decided
                 Session::user.username = ui->nameLineEdit->text();
+                db.close();
                 accept();
             }
-            else
-                QMessageBox::warning(this, "Warning", "User does not exist", QMessageBox::Yes);
+            else throw QString("User not exist");
         }catch(const QString & e)
         {
             QMessageBox::critical(this, "Database connect error", e, QMessageBox::Yes);

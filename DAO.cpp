@@ -6,12 +6,10 @@
 /// \brief DAO::insert insert log.
 /// \param log Log struct.
 ///
-void DAO::insert(const Log &log)
+void DAO::insert(QSqlDatabase& db, const Log &log)
 {
-     QSqlDatabase db =CDatabase::getDB();
-     //do some sql operation
      db.transaction();
-     QSqlQuery query;
+     QSqlQuery query(db);
 
      query.prepare("INSERT INTO log (date, start_t, end_t,face_type,sit_type,userid) VALUES (:date, :start_t, :end_t,:face_type,:sit_type,:userid)");
 
@@ -25,8 +23,6 @@ void DAO::insert(const Log &log)
      query.exec();
 
      db.commit();
-     db.close();
-
 }
 
 ///
@@ -35,12 +31,9 @@ void DAO::insert(const Log &log)
 /// \param[in] user
 /// \return Related log.
 ///
-QList<Log> DAO::query(const QDate &date,const User &user)
+QList<Log> DAO::query(QSqlDatabase& db, const QDate &date,const User &user)
 {
-    QSqlDatabase db =CDatabase::getDB();
-    //do some sql operation
-
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("select * from log where date=? and userid=?");
     query.addBindValue(date);
     query.addBindValue(user.userid);
@@ -62,9 +55,6 @@ QList<Log> DAO::query(const QDate &date,const User &user)
         logs.push_back(log);
     }
 
-
-    db.close();
-
     return logs;
 }
 
@@ -73,21 +63,19 @@ QList<Log> DAO::query(const QDate &date,const User &user)
 /// \param user
 /// \return success or not.
 ///
-bool DAO::insert(const User &user)
+bool DAO::insert(QSqlDatabase& db, const User &user)
 {
     int id;
-    if(query(user.username,id))
+
+    if(query(db, user.username,id))
         throw QString("user already exist");
 
-    QSqlDatabase db =CDatabase::getDB();
-    //do some sql operation
     db.transaction();
-    QSqlQuery q;
+    QSqlQuery q(db);
     q.prepare("insert into user(username) values(:username)");
     q.bindValue(":username",user.username);
     q.exec();
     db.commit();
-    db.close();
 
     return true;
 }
@@ -98,11 +86,9 @@ bool DAO::insert(const User &user)
 /// \param[out] id
 /// \return Id of user.
 ///
-bool DAO::query(const QString& username, int &id)
+bool DAO::query(QSqlDatabase& db, const QString& username, int &id)
 {
-    QSqlDatabase db =CDatabase::getDB();
-    //do some sql operation
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("select * from user where username=?");
     query.addBindValue(username);
     query.exec();
@@ -110,14 +96,9 @@ bool DAO::query(const QString& username, int &id)
     if(query.next())
     {
         id =query.value("id").toInt();
-        db.close();
         return true;
     }
-    else
-    {
-        db.close();
-        return false;
-    }
+    else return false;
 
 
 }
@@ -126,12 +107,10 @@ bool DAO::query(const QString& username, int &id)
 /// \brief DAO::insert insert predictor model.
 /// \param[in] predictor predictor object.
 ///
-void DAO::insert(const Predictor &predictor)
+void DAO::insert(QSqlDatabase &db, const Predictor &predictor)
 {
-    QSqlDatabase db =CDatabase::getDB();
-    //do some sql operation
     db.transaction();
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     query.prepare("insert into predictor(xml,userid) values(?,?)");
     QVariant va(predictor.xml);
@@ -145,7 +124,6 @@ void DAO::insert(const Predictor &predictor)
     }
 
     db.commit();
-    db.close();
 
     qDebug() << "Finished insert predictor model.";
 }
@@ -155,12 +133,9 @@ void DAO::insert(const Predictor &predictor)
 /// \param[in] user
 /// \return Predictor model.
 ///
-Predictor DAO::query(const User &user)
+Predictor DAO::query(QSqlDatabase& db, const User &user)
 {
-    QSqlDatabase db =CDatabase::getDB();
-    //do some sql operation
-
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("select * from predictor where userid =:userid");
     query.bindValue(":userid",user.userid);
     query.exec();
@@ -168,18 +143,13 @@ Predictor DAO::query(const User &user)
     Predictor p;
     if(query.next())
     {
-
         p.id =query.value("id").toInt();
         p.user =user;
         p.xml =query.value("xml").toByteArray();
     }
     else
-    {
-        db.close();
         throw QString("No predictor model exist.");
-    }
 
-    db.close();
     return p;
 }
 
@@ -187,10 +157,9 @@ Predictor DAO::query(const User &user)
 /// \brief DAO::update
 /// \param predictor
 ///
-void DAO::update(const Predictor& predictor)
+void DAO::update(QSqlDatabase& db, const Predictor& predictor)
 {
-    QSqlDatabase db = CDatabase::getDB();
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     query.prepare("update predictor set xml = ? where userid = ?");
     QVariant va(predictor.xml);
@@ -199,13 +168,16 @@ void DAO::update(const Predictor& predictor)
     if (!query.exec())
     {
         db.close();
-        throw QString("Update error.");
+        throw QString(query.lastError().text());
     }
 
-    qDebug() << "" + query.lastQuery();
-    qDebug() << query.numRowsAffected() << "rows affected.";
-    qDebug() << "update predictor succeed.";
-
-    db.close();
+    if (query.isActive())
+    {
+        qDebug() << "" + query.lastQuery();
+        qDebug() << query.numRowsAffected() << "rows affected.";
+        qDebug() << "update predictor succeed.";
+    }
+    else
+        qDebug() << "query is not active";
 }
 
