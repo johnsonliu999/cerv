@@ -59,11 +59,13 @@ void MainWindow::seatProcess()
 {
     QString seatResultDisplayString = "";    
 
-    SitLogic::readOnce(ui->COMComboBox->currentText());
-
-    for(auto res : SitLogic::getSitType())
+    try{
+        SitLogic::readOnce(ui->COMComboBox->currentText());
+        seatResultDisplayString=SitLogic::fetchJudgedMessage(SitLogic::getSitType())+"\n";
+    } catch(const QString& e)
     {
-        seatResultDisplayString=SitLogic::fetchJudgedMessage(res)+"\n";
+        QMessageBox::information(this, "seatProcess", e, QMessageBox::Ok);
+        return;
     }
 
     ui->seatInfoEdit->setPlainText(seatResultDisplayString);
@@ -172,8 +174,6 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_pushButton_4_clicked()
 {
-
-
     if(ui->pushButton_4->text()=="Start")
     {
         ui->COMComboBox->setEnabled(false);
@@ -250,19 +250,18 @@ void MainWindow::on_connectButton_clicked()
 
     // open serial port
     QList<QString> devList;
+    QSerialPort* p_port;
     try{
         if ("" == portName) throw QString("No selected COM.");
         CSerialReader reader(portName);
-        QSerialPort* p_port = reader.getPort();
+        p_port = reader.getPort();
         devList = reader.findDev();
         p_port->close();
         if (devList.empty())
-        {
-            QMessageBox::information(this, "Error", "No device found", QMessageBox::Ok);
-            return;
-        }
+            throw QString("No device found");
     } catch (const QString& e)
     {
+        p_port->close();
         QMessageBox::information(this, "Error", e, QMessageBox::Ok);
         return;
     }

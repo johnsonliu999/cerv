@@ -16,14 +16,15 @@ class SitLogic
 public:
     SitLogic();
 
-    static  QList<CPredictor::eSitType> getSitType();
+    static  CPredictor::eSitType getSitType();
     static void readOnce(const QString &portName);
     static CPredictor::eSitType getAverageType();
     static  QString fetchJudgedMessage(CPredictor::eSitType sitType);
 
 private:
     static    CPredictor* p_predictor;
-    static    QList<CPredictor::eSitType> stType;
+    static    QList<CPredictor::eSitType> resList;
+    QList<int>* p_statList;
 };
 
 

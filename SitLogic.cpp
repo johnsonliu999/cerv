@@ -1,15 +1,36 @@
 #include "SitLogic.h"
 
-QList<CPredictor::eSitType> SitLogic::stType = QList<CPredictor::eSitType>();
+QList<CPredictor::eSitType> SitLogic::resList = QList<CPredictor::eSitType>();
 CPredictor* SitLogic::p_predictor =CPredictor::getPredictor();
+
+const int RES_NUM = 5; ///< the number of results kept by stType
+const int TYPE_NUM = 5;
+
+///
+/// \brief SitLogic::SitLogic
+/// initiate the statistic list
+///
+SitLogic::SitLogic() :
+    p_statList(new QList<int>)
+{
+    for (int i = 0; i < TYPE_NUM; i++)
+        p_statList << 0;
+}
 
 ///
 /// \brief SitLogic::getSitType return list of recent sit type.
 /// \return List of recent seat type.
 ///
-QList<CPredictor::eSitType> SitLogic::getSitType()
+CPredictor::eSitType SitLogic::getSitType()
 {
-     return stType;
+    int ind = 0;
+    for (int i = 0; i < TYPE_NUM; i++)
+    {
+        if (p_statList[ind] < p_statList[i])
+            ind = i;
+    }
+
+    return CPredictor::eSitType(ind);
 }
 
 ///
@@ -18,13 +39,12 @@ QList<CPredictor::eSitType> SitLogic::getSitType()
 ///
 void SitLogic::readOnce(const QString& portName)
 {
-    CSerialReader reader(portName);
-    QSerialPort* p_port = reader.getPort();
-
     for(auto data : reader.readSerial())
-        stType.append(p_predictor->Predict(data));
-
-    p_port->close();
+    {
+        if (resList.size() >= RES_NUM)
+            resList
+        resList.append(p_predictor->Predict(data));
+    }
 }
 
 ///
@@ -33,8 +53,8 @@ void SitLogic::readOnce(const QString& portName)
 ///
 CPredictor::eSitType SitLogic::getAverageType()
 {
-    if (stType.size() != 0)
-        return stType.at(0);
+    if (resList.size() != 0)
+        return resList.at(0);
     else
         return CPredictor::eSitType::UNKNOWN;
 }
