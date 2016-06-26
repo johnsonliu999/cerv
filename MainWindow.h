@@ -21,34 +21,33 @@ public:
     ~MainWindow();
     void shakeFrm();
 
+private:
+    void sitProc();
+
 signals:
     void updateSitData(const QString portName);
     void updateModel();
 
 public slots:
     void updatePlainText(const QString text);
+
     void info(const QString title, const QString text);
 
 private slots:
-
-    void timing();
+    void sitTask();
+    void cameraTask();
 
     void on_MainWindow_destroyed();
-
-    void sitProc();
-
     void on_actionTrain_triggered();
-
     void on_calendarWidget_clicked(const QDate &date);
-
     void on_connectButton_clicked();
-
     void on_startButton_clicked();
 
 private:
     Ui::MainWindow *ui;
 
-    QTimer* mp_timer;
+    QTimer* mp_sitProcTimer;
+    QTimer* mp_cameraTimer;
     SitLogic* mp_sitLogic;
     QThread* mp_sitLogicThd;
 

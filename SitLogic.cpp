@@ -45,22 +45,53 @@ CPredictor::eSitType SitLogic::getRecentRes()
 void SitLogic::readOnce(const QString& portName)
 {
     CSerialReader reader(portName);
-    for(auto data : reader.readSerial())
+    QSerialPort* p_port;
+
+    try{
+        p_port = reader.openPort();
+    } catch(const QString& e)
+    {
+        emit info("readOnce", e);
+        return ;
+    }
+
+    QList<QList<int> > records;
+    try{
+        records = reader.getTrainData();
+    } catch(const QString& e)
+    {
+        p_port->close();
+        emit info("readOnce", e);
+        return ;
+    }
+
+    p_port->close();
+
+    // update statistics
+    for(int i = 0; i < records.length(); i++)
     {
         if (mp_resList->size() >= RES_NUM)
         {
             (*mp_statList)[(int)(*mp_resList)[0]]--;
             mp_resList->removeFirst();
         }
-        CPredictor::eSitType res = mp_predictor->predict(data);
+        CPredictor::eSitType res = mp_predictor->predict(records[i]);
         mp_resList->append(res);
         (*mp_statList)[(int)res]++;
     }
 }
 
+///
+/// \brief SitLogic::updateSitData
+/// Time cost : 2445 msecs
+///
+/// \param portName
+///
 void SitLogic::updateSitData(const QString portName)
 {
-    qDebug() << "updateSigData called";
+    qDebug() << "updateSitData called";
+
+    QTime t1 = QTime::currentTime();
     try {
         readOnce(portName);
     } catch (const QString& e)
@@ -68,6 +99,8 @@ void SitLogic::updateSitData(const QString portName)
         emit info("readOnce", e);
         return;
     }
+    QTime t2 = QTime::currentTime();
+    qDebug() << "time cost :" << t1.msecsTo(t2);
 
     emit updatePlainText(fetchJudgedMessage(getRecentRes()));
 }

@@ -135,7 +135,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
     // since the matrix start with 0
     while (total + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
-        recList = reader.readSerial();
+        recList = reader.getTrainData();
 
         int size = recList.size();
         if (total + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
@@ -160,13 +160,14 @@ void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
 }
 
 ///
-/// \brief CPredictor::CollectDataRaw store data.
-/// \param[in] type Type of seat.
-/// \param[in] data Data read from serial port.
+/// \brief CPredictor::storeTrainData
+/// store data for training.
 ///
-void CPredictor::CollectDataRaw(CPredictor::eSitType type, const QList<QList<int> > & data)
+/// \param type
+/// \param data
+///
+void CPredictor::storeTrainData(CPredictor::eSitType type, const QList<QList<int> > & data)
 {
-
     for (int j = 0; j < data.size(); j++)
     {
         for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
@@ -175,7 +176,6 @@ void CPredictor::CollectDataRaw(CPredictor::eSitType type, const QList<QList<int
         }
         iLabel.at<int>(j, 0) = static_cast<int>(type);
     }
-
 }
 
 ///

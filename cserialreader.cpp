@@ -9,13 +9,7 @@
 #include <QThread>
 #include <QByteArray>
 
-/// All operation(opening, closing...) related to serial port will be finished in the class.
-/// * Including opening and closing serial port.\n
-/// * All function will throw exception.\n
-/// * When being initialized, [portName] should be given. [portName] is consider
-/// to be a constant.\n
-/// * When open serial port, use [CSerialReader.getPort] rather than [QSerialPort.open].
-/// bedause [getPort] guarantee to open serial port.
+
 
 ///
 /// \brief CSerialReader::CSerialReader
@@ -41,7 +35,7 @@ CSerialReader::~CSerialReader()
 /// \exception <QString> {}
 ///  \return
 ///
-QSerialPort* CSerialReader::getPort() const
+QSerialPort* CSerialReader::openPort() const
 {
     if (mp_port->isOpen())
         throw QString("Port has been opened by other function.");
@@ -68,7 +62,7 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     /*** connect device ***/
     qDebug() << "Device found, try to connect";
     // try to connect the device
-    QSerialPort* p_port = getPort();
+    QSerialPort* p_port = openPort();
 
     try{
         if (-1 == p_port->write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
@@ -92,7 +86,7 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 ///
 bool CSerialReader::isConnected()
 {
-    QSerialPort* p_port = getPort();
+    QSerialPort* p_port = openPort();
 
     bool f = mp_port->waitForReadyRead(2000);
 
@@ -114,7 +108,7 @@ QList<QString> CSerialReader::findDev()
         throw QString("Device has been connected.");
 
     // write inquery and receive response.
-    QSerialPort* p_port = getPort();
+    QSerialPort* p_port = openPort();
     try{
         if (-1 == p_port->write("at+inq\r\n"))
             throw QString("Port write error.");
@@ -158,7 +152,7 @@ QList<QString> CSerialReader::findDev()
  * @param iStringList：发送的QStringList类型数据
  * @return：QList的int型数据
  */
-const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iStringList)
+const QList< QList<int> > CSerialReader::parseRecords(const QStringList & iStringList)
 {
     QList< QList<int> > iDataList;
     QList<int> iIntList;
@@ -185,38 +179,29 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
 }
 
 
-/**
- * @brief CSerialReader::ReadSerial
- * 需要先打开串口
- * 读取一次串口数据
- *
- * @return ：读取的数据,QStringList形式保存，每条为一次记录
- */
-const QList< QList<int> > CSerialReader::readSerial() const
+///
+/// \brief CSerialReader::getTrainData
+/// 2000 bytes will cost around 2 secs
+///
+///
+///  \return
+///
+const QList< QList<int> > CSerialReader::getTrainData() const
 {
-    QStringList iList;
-
-    QSerialPort* p_port = getPort();
+    QStringList records;
 
     // 读取前需要设置阻塞
-    if (!p_port->waitForReadyRead(5000))
-    {
-        p_port->close();
+    if (!mp_port->waitForReadyRead(5000))
         throw QString("No data read in 5s");
-    }
 
-    QThread::sleep(1);
     QByteArray array;
-
-    while(array.length() < 5000)
+    while(array.length() < 2000)
     {
-        array += p_port->readAll();
-        p_port->waitForReadyRead(-1);
+        array += mp_port->readAll();
+        mp_port->waitForReadyRead(-1);
     }
 
-    p_port->close();
-
-    qDebug() << "Raw Data:" << array.data();
+    qDebug() << "Raw Data" << array.length() << ":" << array.data();
 
     // 提取完整数据，需要满足以#开头，*结尾，20个数据
     QRegExp rx("(#\\s(\\d{1,4}\\s){20}\\*\r\n)");
@@ -227,10 +212,12 @@ const QList< QList<int> > CSerialReader::readSerial() const
     while ((pos = rx.indexIn(QString(array), pos)) != -1)
     {
         // 往iList中插如第一个括号匹配的内容
-        iList << rx.cap(1);
+        records << rx.cap(1);
         pos += rx.matchedLength(); // 移动开始匹配模式的位置，避免重复匹配
     }
 
-    return __ParseData(iList);
+    QList<QList<int> > data = parseRecords(records);
+
+    return data;
 }
 

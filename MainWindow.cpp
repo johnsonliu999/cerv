@@ -23,7 +23,9 @@
 
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
-    ui(new Ui::MainWindow),mp_timer(new QTimer),
+    ui(new Ui::MainWindow),
+    mp_sitProcTimer(new QTimer),
+    mp_cameraTimer(new QTimer),
     mp_sitLogic(new SitLogic(Session::user)),
     mp_sitLogicThd(new QThread)
 {
@@ -37,7 +39,8 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
         ui->COMComboBox->addItem(portList[i].portName());
 
     // begin connection
-    connect(mp_timer,SIGNAL(timeout()),this,SLOT(timing()));
+    connect(mp_sitProcTimer,&QTimer::timeout,this,&MainWindow::sitTask);
+    connect(mp_cameraTimer, &QTimer::timeout, this, &MainWindow::cameraTask);
 
     connect(this, &MainWindow::updateSitData, mp_sitLogic, &SitLogic::updateSitData);
     connect(this, &MainWindow::updateModel, mp_sitLogic, &SitLogic::updateModel);
@@ -64,7 +67,7 @@ MainWindow::~MainWindow()
 {
     QSqlDatabase::removeDatabase("main_win");
     delete ui;
-    delete mp_timer;
+    delete mp_sitProcTimer;
 }
 
 
@@ -90,15 +93,13 @@ void MainWindow::info(const QString title, const QString text)
     QMessageBox::information(this, title, text, QMessageBox::Ok);
 }
 
-// end of slots
-
 bool first =true;
 int face_duration =0;
 FacePostureType previous;
 QTime start_t;
 QTime end_t;
 
-void MainWindow::timing()
+void MainWindow::sitTask()
 {
     ui->label->setPixmap(QPixmap::fromImage(detect()));
 
@@ -252,12 +253,6 @@ void MainWindow::on_startButton_clicked()
         {
             openCamera();
             if ("" == portName) throw QString("No selected COM.");
-
-//            Predictor p;
-//            QSqlDatabase db = m_db.getDB();
-//            p = DAO::query(db, Session::user);
-//            db.close();
-
             emit updateModel();
         }catch (const QString& e)
         {
@@ -265,17 +260,17 @@ void MainWindow::on_startButton_clicked()
             return;
         }
 
-        //qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
-
         //定时截屏
         qDebug() << "Start timer";
-        mp_timer->start(1000);
+        mp_cameraTimer->start(1000);
+        mp_sitProcTimer->start(1000);
         ui->startButton->setText("Stop");
     }
     else
     {
         qDebug() << "Stop timer";
-        mp_timer->stop();
+        mp_cameraTimer->stop();
+        mp_sitProcTimer->stop();
         ui->COMComboBox->setEnabled(true);
         ui->startButton->setText("Start");
     }

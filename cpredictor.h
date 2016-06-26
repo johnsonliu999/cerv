@@ -41,7 +41,7 @@ public:
     void train();
     bool isTrained();
     void collectCertainType(const CSerialReader&, eSitType type);
-    void CollectDataRaw(eSitType type,const QList<QList<int>>& data);
+    void storeTrainData(eSitType type,const QList<QList<int>>& data);
 
 public slots:
     void trainData(QString portName, const bool b_replace);
@@ -53,7 +53,6 @@ protected:
 signals:
     void percentChanged(int percent);
     void information(const QString title, const QString content);
-    void critial(const QString title, const QString content);
     void finishedTrain();
 };
 
