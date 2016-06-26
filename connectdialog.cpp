@@ -3,7 +3,7 @@
 
 connectDialog::connectDialog(const QString &portName, const QList<QString> &devList, QWidget *parent) :
     QDialog(parent),
-    reader(CSerialReader(portName)),
+    p_reader(new CSerialReader(portName)),
     ui(new Ui::connectDialog)
 {
     ui->setupUi(this);
@@ -21,7 +21,7 @@ connectDialog::~connectDialog()
 void connectDialog::on_okButton_clicked()
 {
     try{
-        reader.ConnectDevice(ui->listWidget->currentItem()->text());
+        p_reader->ConnectDevice(ui->listWidget->currentItem()->text());
     } catch(const QString& e)
     {
         QMessageBox::information(this, "Connect Error", e, QMessageBox::Ok);

@@ -27,7 +27,7 @@ public:
     CSerialReader(const QString& portName);
     ~CSerialReader();
 
-    QSerialPort *getPort();
+    QSerialPort *getPort() const;
     void ConnectDevice(const QString & cDevAddr = "0x00158300428D");
     bool isConnected();
     QList<QString> findDev();

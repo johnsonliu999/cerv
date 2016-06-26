@@ -23,7 +23,8 @@
 
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
-    ui(new Ui::MainWindow),timer(new QTimer)
+    ui(new Ui::MainWindow),timer(new QTimer),
+    p_sitLogic(new SitLogic)
 {
     ui->setupUi(this);
 
@@ -60,8 +61,8 @@ void MainWindow::seatProcess()
     QString seatResultDisplayString = "";    
 
     try{
-        SitLogic::readOnce(ui->COMComboBox->currentText());
-        seatResultDisplayString=SitLogic::fetchJudgedMessage(SitLogic::getSitType())+"\n";
+        p_sitLogic->readOnce(ui->COMComboBox->currentText());
+        seatResultDisplayString=SitLogic::fetchJudgedMessage(p_sitLogic->getRecentRes())+"\n";
     } catch(const QString& e)
     {
         QMessageBox::information(this, "seatProcess", e, QMessageBox::Ok);
@@ -109,7 +110,7 @@ void MainWindow::timing()
             log.start_t =start_t;
             log.end_t =end_t;
             log.face_type =FaceLogic::getRtType();
-            log.sit_type =SitLogic::getAverageType();
+            log.sit_type = p_sitLogic->getRecentRes();
             log.user =Session::user;
 
             try{
@@ -250,18 +251,14 @@ void MainWindow::on_connectButton_clicked()
 
     // open serial port
     QList<QString> devList;
-    QSerialPort* p_port;
     try{
         if ("" == portName) throw QString("No selected COM.");
         CSerialReader reader(portName);
-        p_port = reader.getPort();
         devList = reader.findDev();
-        p_port->close();
         if (devList.empty())
             throw QString("No device found");
     } catch (const QString& e)
     {
-        p_port->close();
         QMessageBox::information(this, "Error", e, QMessageBox::Ok);
         return;
     }

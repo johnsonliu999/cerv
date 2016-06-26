@@ -23,7 +23,7 @@ public:
     {
         FacePostureType t1 =FaceLogic::getRtType();
         SitLogic::readOne();
-        eSitType t2 =SitLogic::getSitType();
+        eSitType t2 =SitLogic::getRecentRes();
 
         //侧脸等，此时只有坐垫有效
         if(t1>=1&&t1<=3)

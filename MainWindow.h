@@ -6,6 +6,8 @@
 
 #include "cdatabase.h"
 
+class SitLogic;
+
 namespace Ui {
 class MainWindow;
 }
@@ -40,6 +42,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QTimer* timer;
+
+    SitLogic* p_sitLogic;
+
     const bool wired;
 
     CDatabase m_db;

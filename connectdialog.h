@@ -21,7 +21,7 @@ private slots:
     void on_okButton_clicked();
 
 private:
-    CSerialReader reader;
+    CSerialReader* p_reader;
 
     Ui::connectDialog *ui;
 };
