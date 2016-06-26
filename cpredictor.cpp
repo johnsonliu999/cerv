@@ -128,37 +128,31 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  */
 void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
 {
-    QList< QList<int> > iDataListList;
+    QList< QList<int> > recList; // 每个类型的记录条数，用来判断是否达标
+    int total = 0;
 
-    // 每个类型的记录条数，用来判断是否达标
-    int nTotalNumber = 0;
-    try{
-        qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
-        // since the matrix start with 0
-        while (nTotalNumber + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
-        {
-            iDataListList = reader.readSerial();
-
-            int size = iDataListList.size();
-            if (nTotalNumber + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
-                size = NUMBER_OF_TRAINING_SAMPLE_PER_CLASS - nTotalNumber - 1;
-
-            for (int j = 0; j < size; j++)
-            {
-                for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
-                {
-                    iData.at<float>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, k) = static_cast<float>(iDataListList[j][k]);
-                }
-                iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + nTotalNumber, 0) = static_cast<int>(type);
-            }
-            nTotalNumber += size;
-            qDebug() << "collected" << nTotalNumber;
-            emit percentChanged((int)(((float)nTotalNumber + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 100));
-            QThread::sleep(5);
-        }
-    } catch (const QString& e)
+    qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
+    // since the matrix start with 0
+    while (total + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
-        emit information("collectCertainType", e);
+        recList = reader.readSerial();
+
+        int size = recList.size();
+        if (total + size >= NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
+            size = NUMBER_OF_TRAINING_SAMPLE_PER_CLASS - total - 1;
+
+        for (int j = 0; j < size; j++)
+        {
+            for (int k = 0; k < ATTRIBUTE_PRE_SAMPLE; k++)
+            {
+                iData.at<float>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + total, k) = static_cast<float>(recList[j][k]);
+            }
+            iLabel.at<int>((int)type * NUMBER_OF_TRAINING_SAMPLE_PER_CLASS + j + total, 0) = static_cast<int>(type);
+        }
+        total += size;
+        qDebug() << "collected" << total;
+        emit percentChanged((int)(((float)total + 1)/NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 100));
+        QThread::sleep(5);
     }
 
     qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
@@ -213,7 +207,6 @@ void CPredictor::loadFromDB(const User& user)
 #include <QFile>
 void CPredictor::save2DB(bool b_replace)
 {
-
     mp_trees->save("temp.xml");
 
     //read file to database,and delete the temp file.
@@ -251,7 +244,6 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
 {
     try{
         CSerialReader reader(portName);
-        QSerialPort* p_port = reader.getPort();
 
         for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
@@ -259,12 +251,11 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
             collectCertainType(reader, (eSitType)i);
         }
 
-        p_port->close();
         emit information("Collect information", "Finished collect");
 
     }catch (const QString & e)
     {
-        emit information("Collect error", e);
+        emit information("trainData", e);
         return;
     }
 

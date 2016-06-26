@@ -24,6 +24,10 @@
 CSerialReader::CSerialReader(const QString &portName) :
     mp_port(new QSerialPort(portName))
 {
+    mp_port->setBaudRate(9600);
+    mp_port->setDataBits(QSerialPort::Data8);
+    mp_port->setParity(QSerialPort::NoParity);
+    mp_port->setStopBits(QSerialPort::OneStop);
 }
 
 CSerialReader::~CSerialReader()
@@ -40,13 +44,10 @@ CSerialReader::~CSerialReader()
 QSerialPort* CSerialReader::getPort() const
 {
     if (mp_port->isOpen())
-    {
-        qDebug() << "Port has opened.";
-        return mp_port;
-    }
+        throw QString("Port has been opened by other function.");
 
     if (!mp_port->open(QSerialPort::ReadWrite))
-        throw mp_port->errorString();
+        throw QString("getPort : ") + mp_port->errorString();
 
     return mp_port;
 }
@@ -184,7 +185,6 @@ const QList< QList<int> > CSerialReader::__ParseData(const QStringList & iString
 }
 
 
-
 /**
  * @brief CSerialReader::ReadSerial
  * 需要先打开串口
@@ -196,8 +196,6 @@ const QList< QList<int> > CSerialReader::readSerial() const
 {
     QStringList iList;
 
-    char buffer[5000] = {0};
-
     QSerialPort* p_port = getPort();
 
     // 读取前需要设置阻塞
@@ -207,9 +205,18 @@ const QList< QList<int> > CSerialReader::readSerial() const
         throw QString("No data read in 5s");
     }
 
-    p_port->read(buffer, 5000);
+    QThread::sleep(1);
+    QByteArray array;
+
+    while(array.length() < 5000)
+    {
+        array += p_port->readAll();
+        p_port->waitForReadyRead(-1);
+    }
 
     p_port->close();
+
+    qDebug() << "Raw Data:" << array.data();
 
     // 提取完整数据，需要满足以#开头，*结尾，20个数据
     QRegExp rx("(#\\s(\\d{1,4}\\s){20}\\*\r\n)");
@@ -217,7 +224,7 @@ const QList< QList<int> > CSerialReader::readSerial() const
 
     int pos = 0;
     // rx.indexIn返回的在str中的位置
-    while ((pos = rx.indexIn(QString(buffer), pos)) != -1)
+    while ((pos = rx.indexIn(QString(array), pos)) != -1)
     {
         // 往iList中插如第一个括号匹配的内容
         iList << rx.cap(1);

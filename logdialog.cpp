@@ -57,6 +57,7 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
         {
             db.close();
             QMessageBox::information(this, "Database connect error", e, QMessageBox::Yes);
+            return;
         }
 
         db.close();
