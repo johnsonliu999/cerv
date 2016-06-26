@@ -39,7 +39,7 @@ public:
     ~CDatabase();
 
 private:
-    QSqlDatabase db; ///< Database object. Different thread need different instance.
+    QSqlDatabase m_db; ///< Database object. Different thread need different instance.
 };
 
 #endif // CDATABASE_H

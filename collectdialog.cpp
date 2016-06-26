@@ -5,19 +5,28 @@
 #include <QDebug>
 #include <QThread>
 
+///
+/// \brief collectDialog::collectDialog
+/// contruct collecting dialog and make connection.
+///
+/// \param portName
+/// \param b_replace
+/// \param parent
+///
 collectDialog::collectDialog(const QString &portName, const bool b_replace, QWidget *parent) :
-    QDialog(parent),portName(portName), b_replace(b_replace),
+    QDialog(parent),
+    portName(portName),
+    mb_replace(b_replace),
+    mp_predictor(new CPredictor),
     ui(new Ui::collectDialog)
 {
     ui->setupUi(this);
-    CPredictor* predictor = CPredictor::getPredictor();
 
-    connect(predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
-    connect(predictor, &CPredictor::information, this, &collectDialog::presentInformation, Qt::BlockingQueuedConnection);
-    connect(predictor, &CPredictor::finishedTrain, this, &collectDialog::accept);
+    connect(mp_predictor, &CPredictor::percentChanged, this, &collectDialog::setPercent);
+    connect(mp_predictor, &CPredictor::information, this, &collectDialog::info, Qt::BlockingQueuedConnection);
+    connect(mp_predictor, &CPredictor::finishedTrain, this, &collectDialog::accept);
 
-    connect(this, &collectDialog::startTrain, predictor, &CPredictor::trainData);
-    connect(this, &collectDialog::tryLoadModel, predictor, &CPredictor::tryLoadModel);
+    connect(this, &collectDialog::startTrain, mp_predictor, &CPredictor::trainData);
 }
 
 
@@ -31,12 +40,11 @@ collectDialog::~collectDialog()
 #include "cserialreader.h"
 void collectDialog::on_buttonStart_clicked()
 {
-    CPredictor* p_predictor = CPredictor::getPredictor();
-    p_predictor->moveToThread(&collectThread);
+    mp_predictor->moveToThread(&collectThread);
     collectThread.start();
 
     ui->buttonStart->setEnabled(false);
-    emit startTrain(portName, b_replace);
+    emit startTrain(portName, mb_replace);
 }
 
 void collectDialog::setPercent(int percent)
@@ -44,14 +52,9 @@ void collectDialog::setPercent(int percent)
     ui->progressBar->setValue(percent);
 }
 
-void collectDialog::presentInformation(const QString title, const QString content)
+void collectDialog::info(const QString title, const QString content)
 {
     QMessageBox::information(this, title, content, QMessageBox::Ok);
-}
-
-void collectDialog::presentCritical(const QString title, const QString content)
-{
-    QMessageBox::critical(this, title, content, QMessageBox::Ok);
 }
 
 

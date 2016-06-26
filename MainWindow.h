@@ -19,19 +19,23 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(bool wired, QWidget *parent = 0);
     ~MainWindow();
-
     void shakeFrm();
+
+signals:
+    void updateSitData(const QString portName);
+    void updateModel();
+
+public slots:
+    void updatePlainText(const QString text);
+    void info(const QString title, const QString text);
 
 private slots:
 
     void timing();
 
-
     void on_MainWindow_destroyed();
 
-    void on_pushButton_4_clicked();
-
-    void seatProcess();
+    void sitProc();
 
     void on_actionTrain_triggered();
 
@@ -39,14 +43,16 @@ private slots:
 
     void on_connectButton_clicked();
 
+    void on_startButton_clicked();
+
 private:
     Ui::MainWindow *ui;
-    QTimer* timer;
 
-    SitLogic* p_sitLogic;
+    QTimer* mp_timer;
+    SitLogic* mp_sitLogic;
+    QThread* mp_sitLogicThd;
 
     const bool wired;
-
     CDatabase m_db;
 };
 

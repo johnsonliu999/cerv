@@ -23,8 +23,9 @@
 
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
-    ui(new Ui::MainWindow),timer(new QTimer),
-    p_sitLogic(new SitLogic)
+    ui(new Ui::MainWindow),mp_timer(new QTimer),
+    mp_sitLogic(new SitLogic(Session::user)),
+    mp_sitLogicThd(new QThread)
 {
     ui->setupUi(this);
 
@@ -35,8 +36,16 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     for (int i = 0; i < portList.length(); i++)
         ui->COMComboBox->addItem(portList[i].portName());
 
-    connect(timer,SIGNAL(timeout()),this,SLOT(timing()));
+    // begin connection
+    connect(mp_timer,SIGNAL(timeout()),this,SLOT(timing()));
 
+    connect(this, &MainWindow::updateSitData, mp_sitLogic, &SitLogic::updateSitData);
+    connect(this, &MainWindow::updateModel, mp_sitLogic, &SitLogic::updateModel);
+    connect(mp_sitLogic, &SitLogic::updatePlainText, this, &MainWindow::updatePlainText);
+    connect(mp_sitLogic, &SitLogic::info, this, &MainWindow::info);
+    // end connection
+
+    // begin DB initialization
     DBParams params;
     params.database = "QMYSQL";
     params.host = "localhost";
@@ -44,32 +53,25 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     params.user = "root";
     params.password = "qq452977491";
     params.port = 3306;
-
     m_db = CDatabase("main_win", params);
+    // end DB initialization
+
+    mp_sitLogic->moveToThread(mp_sitLogicThd);
+    mp_sitLogicThd->start();
 }
 
 MainWindow::~MainWindow()
 {
     QSqlDatabase::removeDatabase("main_win");
     delete ui;
-    delete timer;
+    delete mp_timer;
 }
 
 
-void MainWindow::seatProcess()
+void MainWindow::sitProc()
 {
-    QString seatResultDisplayString = "";    
-
-    try{
-        p_sitLogic->readOnce(ui->COMComboBox->currentText());
-        seatResultDisplayString=SitLogic::fetchJudgedMessage(p_sitLogic->getRecentRes())+"\n";
-    } catch(const QString& e)
-    {
-        QMessageBox::information(this, "seatProcess", e, QMessageBox::Ok);
-        return;
-    }
-
-    ui->seatInfoEdit->setPlainText(seatResultDisplayString);
+    qDebug() << "emit updateSitData";
+    emit updateSitData(ui->COMComboBox->currentText());
 }
 
 void MainWindow::shakeFrm()
@@ -77,16 +79,30 @@ void MainWindow::shakeFrm()
 
 }
 
+// slots
+void MainWindow::updatePlainText(const QString text)
+{
+    ui->seatInfoEdit->setPlainText(text);
+}
+
+void MainWindow::info(const QString title, const QString text)
+{
+    QMessageBox::information(this, title, text, QMessageBox::Ok);
+}
+
+// end of slots
+
 bool first =true;
 int face_duration =0;
 FacePostureType previous;
 QTime start_t;
 QTime end_t;
+
 void MainWindow::timing()
 {
     ui->label->setPixmap(QPixmap::fromImage(detect()));
 
-    seatProcess();
+    sitProc();
 
     if(first)
     {
@@ -110,7 +126,7 @@ void MainWindow::timing()
             log.start_t =start_t;
             log.end_t =end_t;
             log.face_type =FaceLogic::getRtType();
-            log.sit_type = p_sitLogic->getRecentRes();
+            log.sit_type = mp_sitLogic->getRecentRes();
             log.user =Session::user;
 
             try{
@@ -173,47 +189,6 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
     }
 }
 
-void MainWindow::on_pushButton_4_clicked()
-{
-    if(ui->pushButton_4->text()=="Start")
-    {
-        ui->COMComboBox->setEnabled(false);
-        QString portName(ui->COMComboBox->currentText());
-        try
-        {
-            openCamera();
-            if ("" == portName) throw QString("No selected COM.");
-
-            Predictor p;
-            QSqlDatabase db = m_db.getDB();
-            p = DAO::query(db, Session::user);
-            db.close();
-
-            CPredictor* p_predictor = CPredictor::getPredictor();
-            p_predictor->mp_trees = Algorithm::loadFromString<RTrees>((String)p.xml.toStdString());
-
-        }catch (const QString& e)
-        {
-            QMessageBox::information(this, "Model error", e);
-            return;
-        }
-
-        //qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
-
-        //定时截屏
-        qDebug() << "Start timer";
-        timer->start(1000);
-        ui->pushButton_4->setText("Stop");
-    }
-    else
-    {
-        qDebug() << "Stop timer";
-        timer->stop();
-        ui->COMComboBox->setEnabled(true);
-        ui->pushButton_4->setText("Start");
-    }
-}
-
 void MainWindow::on_actionTrain_triggered()
 {
     QString portName(ui->COMComboBox->currentText());
@@ -265,4 +240,43 @@ void MainWindow::on_connectButton_clicked()
 
     connectDialog c(portName, devList);
     c.exec();
+}
+
+void MainWindow::on_startButton_clicked()
+{
+    if(ui->startButton->text()=="Start")
+    {
+        ui->COMComboBox->setEnabled(false);
+        QString portName(ui->COMComboBox->currentText());
+        try
+        {
+            openCamera();
+            if ("" == portName) throw QString("No selected COM.");
+
+//            Predictor p;
+//            QSqlDatabase db = m_db.getDB();
+//            p = DAO::query(db, Session::user);
+//            db.close();
+
+            emit updateModel();
+        }catch (const QString& e)
+        {
+            QMessageBox::information(this, "Model error", e);
+            return;
+        }
+
+        //qDebug() << (p_predictor->mp_trees->isTrained() ? "Trained" : "Untrained");
+
+        //定时截屏
+        qDebug() << "Start timer";
+        mp_timer->start(1000);
+        ui->startButton->setText("Stop");
+    }
+    else
+    {
+        qDebug() << "Stop timer";
+        mp_timer->stop();
+        ui->COMComboBox->setEnabled(true);
+        ui->startButton->setText("Start");
+    }
 }

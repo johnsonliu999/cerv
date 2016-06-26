@@ -1,20 +1,25 @@
 #include "SitLogic.h"
 
-CPredictor* SitLogic::p_predictor =CPredictor::getPredictor();
-
 const int RES_NUM = 5; ///< the number of results kept by stType
 const int TYPE_NUM = 5;
 
+/// SitLogic is mainly used for processing 'sit' related operation.
+/// * SitLogic object is bound with a user.
+
+
+
 ///
 /// \brief SitLogic::SitLogic
-/// initiate the statistic list
+/// initialize the statistic list
 ///
-SitLogic::SitLogic() :
-    p_statList(new QList<int>),
-    p_resList(new QList<CPredictor::eSitType>)
+SitLogic::SitLogic(const User& user) :
+    mp_statList(new QList<int>),
+    mp_resList(new QList<CPredictor::eSitType>),
+    mp_predictor(new CPredictor),
+    m_user(user)
 {
     for (int i = 0; i < TYPE_NUM; i++)
-        *p_statList << 0;
+        *mp_statList << 0;
 }
 
 ///
@@ -26,7 +31,7 @@ CPredictor::eSitType SitLogic::getRecentRes()
     int ind = 0;
     for (int i = 0; i < TYPE_NUM; i++)
     {
-        if ((*p_statList)[ind] < (*p_statList)[i])
+        if ((*mp_statList)[ind] < (*mp_statList)[i])
             ind = i;
     }
 
@@ -42,14 +47,38 @@ void SitLogic::readOnce(const QString& portName)
     CSerialReader reader(portName);
     for(auto data : reader.readSerial())
     {
-        if (p_resList->size() >= RES_NUM)
+        if (mp_resList->size() >= RES_NUM)
         {
-            (*p_statList)[(int)(*p_resList)[0]]--;
-            p_resList->removeFirst();
+            (*mp_statList)[(int)(*mp_resList)[0]]--;
+            mp_resList->removeFirst();
         }
-        CPredictor::eSitType res = p_predictor->Predict(data);
-        p_resList->append(res);
-        (*p_statList)[(int)res]++;
+        CPredictor::eSitType res = mp_predictor->predict(data);
+        mp_resList->append(res);
+        (*mp_statList)[(int)res]++;
+    }
+}
+
+void SitLogic::updateSitData(const QString portName)
+{
+    qDebug() << "updateSigData called";
+    try {
+        readOnce(portName);
+    } catch (const QString& e)
+    {
+        emit info("readOnce", e);
+        return;
+    }
+
+    emit updatePlainText(fetchJudgedMessage(getRecentRes()));
+}
+
+void SitLogic::updateModel()
+{
+    try {
+        mp_predictor->loadFromDB(m_user);
+    } catch(const QString& e)
+    {
+        emit info("updateModel", e);
     }
 }
 

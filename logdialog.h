@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QAbstractButton>
 
-#include "cdatabase.h"
+class CDatabase;
 
 namespace Ui {
 class LogDialog;
@@ -24,7 +24,7 @@ private slots:
 
 private:
     Ui::LogDialog *ui;
-    CDatabase m_db;
+    CDatabase* mp_db;
 };
 
 #endif // LOGDIALOG_H

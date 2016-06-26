@@ -11,14 +11,21 @@
 const int ATTRIBUTE_PRE_SAMPLE = 20;
 const int NUMBER_OF_TRAINING_SAMPLE_PER_CLASS = 500;
 
-CPredictor* CPredictor::mp_predictor = NULL;
-int CPredictor::nSitTypeNumber = 5;
-
+const int SIT_TYPE_NUM = 5;
 
 #include "cdatabase.h"
-/**
-   在构造的时候准备好两个成员变量  iData, iLabel
-*/
+
+/// CPredictor is mainly used for classfying data.
+/// * CPredictor keeps a pointer of model used for classfication.\n
+/// * Include [save2DB] [loadFromDB], which refers to DB,
+/// so the object should keep a connection or object of DB.
+/// The connection name is 'predictor'\n
+/// * All DB operation(opening, closing) should be limited in the class.\n
+
+///
+/// \brief CPredictor::CPredictor
+/// construct CPredictor and connect DB.
+///
 CPredictor::CPredictor():iData(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1),
     iLabel(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1)
 {
@@ -45,7 +52,7 @@ CPredictor::~CPredictor()
  * @param pnPredictData：由各个特征组成的数组，NUMBER_OF_TRAINING_SAMPLE_PER_CLASS项
  * @return ：坐姿的枚举类型
  */
-CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
+CPredictor::eSitType CPredictor::predict(const QList<int> & iPredictDataList)
 {
     Mat iPredictData = Mat(1, ATTRIBUTE_PRE_SAMPLE, CV_32FC1);
     Mat iPredictLabel = Mat(1,1, CV_32SC1);
@@ -59,44 +66,6 @@ CPredictor::eSitType CPredictor::Predict(const QList<int> & iPredictDataList)
     qDebug() << "The result is" << nPredictLable;
 
     return static_cast<eSitType>(nPredictLable);
-}
-
-/**
- * @brief CPredictor::getPredictor
- * if the user has been trained before will return last
- * model directly
- *
- *
- * @param cUserName
- * @return ：成功返回实例指针，失败返回NULL
- */
-CPredictor *CPredictor::getPredictor()
-{
-    if(!mp_predictor)
-        mp_predictor =new CPredictor();
-    return mp_predictor;
-}
-
-///
-/// \brief CPredictor::getSitString return string format infomation.
-/// \param index Type of seat.
-/// \return Seat type in string format.
-///
-const QString CPredictor::getSitString(int index)
-{
-    switch ((CPredictor::eSitType)index)
-    {
-    case CPredictor::NORMAL:
-        return "normal";
-    case CPredictor::BACKWARD:
-        return "backward";
-    case CPredictor::FORWARD:
-        return "forward";
-    case CPredictor::RIGHTWARD:
-        return "rightward";
-    case CPredictor::LEFTWARD:
-        return "leftward";
-    }
 }
 
 
@@ -215,18 +184,29 @@ void CPredictor::CollectDataRaw(CPredictor::eSitType type, const QList<QList<int
 
 }
 
+///
+/// \brief CPredictor::loadFromDB
+/// load model from DB according to User structure.
+///
+/// \exception <QString> {}
+///
+/// \param user
+///
 void CPredictor::loadFromDB(const User& user)
 {
+    QSqlDatabase db = m_db.getDB();
+    Predictor p;
     try{
-        QSqlDatabase db = m_db.getDB();
-        Predictor p =DAO::query(db, user);
-        if(p.id!=0)
-        mp_trees=mp_trees->loadFromString<RTrees>((String)p.xml.toStdString());
-        db.close();
+        p =DAO::query(db, user);
     } catch (const QString& e)
     {
-        emit information("loadFromDB", e);
+        throw e;
+        db.close();
     }
+
+    if(p.id)
+        mp_trees=mp_trees->loadFromString<RTrees>((String)p.xml.toStdString());
+    db.close();
 }
 
 
@@ -249,11 +229,11 @@ void CPredictor::save2DB(bool b_replace)
         db.close();
     } catch(const QString& e)
     {
-        //f.remove();
+        f.remove();
         emit information("Save2DB", e);
     }
 
-    //f.remove();
+    f.remove();
 }
 
 void CPredictor::train()
@@ -273,9 +253,9 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
         CSerialReader reader(portName);
         QSerialPort* p_port = reader.getPort();
 
-        for (int i = 0; i < nSitTypeNumber; i++)
+        for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
-            emit information("Collect information", "Going to collect " + getSitString(i) + " data");
+            emit information("Collect information", "Going to collect " + SitLogic::fetchJudgedMessage((CPredictor::eSitType)i) + " data");
             collectCertainType(reader, (eSitType)i);
         }
 
@@ -284,7 +264,7 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
 
     }catch (const QString & e)
     {
-        emit critial("Collect error", e);
+        emit information("Collect error", e);
         return;
     }
 
@@ -293,33 +273,11 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
         emit information("Train information", "Finished train");
     }catch (const QString & e)
     {
-        emit critial("Train error", e);
+        emit information("Train error", e);
         return;
     }
 
     save2DB(b_replace);
     emit finishedTrain();
 
-}
-
-void CPredictor::tryLoadModel()
-{
-    try{
-        QSqlDatabase db = m_db.getDB();
-        Predictor p = DAO::query(db, Session::user);
-        db.close();
-        if (p.id != 0)
-        {
-            loadFromDB(Session::user);
-            emit information("Train information", "Find model");
-        }
-        else
-        {
-            emit information("Train Information", "No model available");
-            return;
-        }
-    }catch (const QString & e)
-    {
-        emit information("Train error", e);
-    }
 }

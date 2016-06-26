@@ -6,24 +6,38 @@
 #include <QString>
 #include <QList>
 #include <QDebug>
+#include <QObject>
 
 ///
 /// \brief The SitLogic class
 /// process seat related logic.
 ///
-class SitLogic
+class SitLogic : public QObject
 {
+    Q_OBJECT
 public:
-    SitLogic();
+    SitLogic(const User &user);
 
-    CPredictor::eSitType getRecentRes();
-    void readOnce(const QString &portName);
     static QString fetchJudgedMessage(CPredictor::eSitType sitType);
 
+    CPredictor::eSitType getRecentRes();
+
 private:
-    static    CPredictor* p_predictor;
-    QList<CPredictor::eSitType>* p_resList;
-    QList<int>* p_statList;
+    void readOnce(const QString &portName);
+
+public slots:
+    void updateSitData(const QString portName);
+    void updateModel();
+
+signals:
+    void updatePlainText(const QString text);
+    void info(const QString title, const QString text);
+
+private:
+    QList<CPredictor::eSitType>* mp_resList;
+    QList<int>* mp_statList;
+    CPredictor* mp_predictor;
+    const User m_user;
 };
 
 

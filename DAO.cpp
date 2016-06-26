@@ -99,8 +99,6 @@ bool DAO::query(QSqlDatabase& db, const QString& username, int &id)
         return true;
     }
     else return false;
-
-
 }
 
 ///

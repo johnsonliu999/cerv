@@ -48,7 +48,6 @@ QSerialPort* CSerialReader::getPort() const
     if (!mp_port->open(QSerialPort::ReadWrite))
         throw mp_port->errorString();
 
-    qDebug() << "Open serial port succeed.";
     return mp_port;
 }
 

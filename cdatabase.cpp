@@ -7,12 +7,12 @@ CDatabase::CDatabase()
 
 CDatabase::CDatabase(const QString connName, const DBParams &params)
 {
-    db = QSqlDatabase::addDatabase("QMYSQL", connName);
-    db.setDatabaseName(params.database);
-    db.setHostName(params.host);
-    db.setUserName(params.user);
-    db.setPassword(params.password);
-    db.setPort(params.port);
+    m_db = QSqlDatabase::addDatabase("QMYSQL", connName);
+    m_db.setDatabaseName(params.database);
+    m_db.setHostName(params.host);
+    m_db.setUserName(params.user);
+    m_db.setPassword(params.password);
+    m_db.setPort(params.port);
 }
 
 CDatabase::~CDatabase()
@@ -26,16 +26,11 @@ CDatabase::~CDatabase()
 ///
 const QSqlDatabase CDatabase::getDB()
 {
-    if (db.isOpen())
+    if (m_db.isOpen())
     {
         qDebug() << "Database has already been opened.";
-        return db;
+        return m_db;
     }
-    else if (db.open())
-    {
-        qDebug() << "Opening Database succeed.";
-        return db;
-    }
-    else
-        throw QString("Opening database failed, DB cannot use\n" + db.lastError().text());
+    else if (m_db.open())   return m_db;
+    else    throw QString("Opening database failed, DB cannot use\n" + m_db.lastError().text());
 }
