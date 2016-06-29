@@ -4,9 +4,10 @@
 #include <QDebug>
 #include <string>
 
-FacePostureType FaceLogic::rtType =Normal;
-QList<Point> FaceLogic::normal =QList<Point>();
+const int RES_NUM = 5; ///< the number of results kept
+const int TYPE_NUM = 5;
 
+/*
 ///
 /// \brief FaceLogic::isInitialized tell if position.txt exists or not.
 /// \return Success or not.
@@ -16,6 +17,26 @@ bool FaceLogic::isInitialized()
     std::ifstream file("position.txt");
     return file.is_open();
 }
+*/
+
+///
+/// \brief FaceLogic::getRecentRes
+/// finds the most common type in result list.
+///
+/// \return
+///
+CFaceClassfier::FaceType FaceLogic::getRecentRes()
+{
+    int ind = 0;
+    for (int i = 0; i < TYPE_NUM; i++)
+    {
+        if ((*mp_statList)[ind] < (*mp_statList)[i])
+            ind = i;
+    }
+
+    return CFaceClassfier::FaceType(ind);
+}
+
 
 ///
 /// \brief FaceLogic::storeNormalValue store position of eye and mouth.
@@ -24,6 +45,90 @@ bool FaceLogic::isInitialized()
 /// \param mouth Mouth position.
 /// \return success or not.
 ///
+FaceLogic::FaceLogic() :
+    mp_resList(new QList<CFaceClassfier::FaceType>),
+    mp_statList(new QList<int>),
+    mp_reader(new CCameraReader),
+    mp_classifier(new CFaceClassfier)
+{
+    for (int i = 0; i < TYPE_NUM; i++)
+        *mp_statList << 0;
+}
+
+FaceLogic::~FaceLogic()
+{
+
+}
+
+///
+/// \brief FaceLogic::start
+/// starts face logic process.
+/// Including resetting all records and reloading models.
+///
+void FaceLogic::start()
+{
+    for (int i = 0; i < RES_NUM; i++)
+        (*mp_statList)[i] = 0;
+
+    mp_resList->clear();
+
+    try{
+        mp_reader->openCamera();
+    } catch(const QString &e)
+    {
+        qDebug() << "Open camera failed.";
+        throw e;
+    }
+
+    try{
+        mp_classifier->loadModel("./train_file/");
+    } catch(const QString& e)
+    {
+        mp_reader->closeCamera();
+        qDebug() << "Failed to load face classifying model.";
+        throw e;
+    }
+}
+
+///
+/// \brief FaceLogic::stop
+/// stops face logic process.
+///
+void FaceLogic::stop()
+{
+    mp_reader->closeCamera();
+}
+
+
+// begin slots
+
+///
+/// \brief FaceLogic::updateFaceRes
+/// update recent result of classification.
+/// Wait for 'update' to use.
+/// Current update 5 results each time.
+///
+void FaceLogic::updateFaceRes()
+{
+    for (int i = 0; i < RES_NUM; i++)
+    {
+        Mat frame = mp_reader->getFrame();
+        CFaceClassfier::FaceType res = mp_classifier->clarrify(frame);
+
+        // update statistics
+        if (mp_resList->size() >= RES_NUM)
+        {
+            (*mp_statList)[(int)(*mp_resList)[0]]--;
+            mp_resList->removeFirst();
+        }
+        mp_resList->append(res);
+        (*mp_statList)[(int)res]++;
+    }
+
+    emit updateDisp(Enum2String(getRecentRes()));
+}
+
+#if NO
 bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Point& mouth)
 {
     qDebug() << "Enter storeNormalValue";
@@ -39,7 +144,9 @@ bool FaceLogic::storeNormalValue(const Point& lfeye,const Point& rteye,const Poi
     }
     return false;
 }
+#endif
 
+/*
 ///
 /// \brief FaceLogic::getNormalValue
 /// get eye and mouth position.
@@ -69,8 +176,9 @@ QList<Point> FaceLogic::getNormalValue()
     file.close();
 	return temp;
 
-}
+}*/
 
+/*
 ///
 /// \brief FaceLogic::judgeFacePosture tell type of face,
 /// and store in rtType.
@@ -87,10 +195,10 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
            throw "File not Found";
     }
 
-	/*if(lfeye.x < normal[0].x)
+    if(lfeye.x < normal[0].x)
 		rtType =Left;
 	if(rteye.x > normal[1].x)
-		rtType =Right;*/
+        rtType =Right;
 
 	int distance1 =(lfeye.x - normal[0].x)*(lfeye.x - normal[0].x) +(lfeye.y -normal[0].y)*(lfeye.y -normal[0].y);
 	int distance2 =(rteye.x - normal[1].x)*(rteye.x - normal[1].x) +(rteye.y -normal[1].y)*(rteye.y -normal[1].y);
@@ -108,120 +216,86 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
 	{
         rtType =Normal;
 	}
-	else if(dis_rm_realtime/dis_rm>1.2&&dis_lm_realtime/dis_lm>1.2&&dis_lr_realtime/dis_lr>1.2)
-		{
-            rtType =Near;
-		}
-		else if(dis_rm_realtime/dis_rm<0.8&&dis_lm_realtime/dis_lm<0.8&&dis_lr_realtime/dis_lr<0.8)
-			{
-                rtType =Far;
-			}
-			else
-			{
-                rtType =Normal;
-			}
-	if(distance1+distance2+distance3 > 24000)
-	{
-		if(abs(lfeye.x-normal[0].x)==0||abs(rteye.x-normal[1].x)==0||abs(mouth.x-normal[2].x)==0)
-		{
-			rtType = Normal;
-		}
-		else if(lfeye.x-normal[0].x>0&&rteye.x-normal[1].x>0&&mouth.x-normal[2].x>0)
-		{
-			if(abs(lfeye.y-normal[0].y)/abs(lfeye.x-normal[0].x)+abs(rteye.y-normal[1].y)/abs(rteye.x-normal[1].x)+abs(mouth.y-normal[2].y)/abs(mouth.x-normal[2].x) > 3)
-			{
-				if(lfeye.y-normal[0].y>0&&rteye.y-normal[1].y>0&&mouth.y-normal[2].y>0)
-				{
-					rtType = Down;
-				}
-				else
-				{
-					rtType = Up;
-				}
-			}
-			else
-			{
-				rtType = Left;
-			}
-		}
-		else if(abs(lfeye.y-normal[0].y)/abs(lfeye.x-normal[0].x)+abs(rteye.y-normal[1].y)/abs(rteye.x-normal[1].x)+abs(mouth.y-normal[2].y)/abs(mouth.x-normal[2].x) > 3)
-		{
+    else if(dis_rm_realtime/dis_rm>1.2&&dis_lm_realtime/dis_lm>1.2&&dis_lr_realtime/dis_lr>1.2)
+    {
+        rtType =Near;
+    }
+    else if(dis_rm_realtime/dis_rm<0.8&&dis_lm_realtime/dis_lm<0.8&&dis_lr_realtime/dis_lr<0.8)
+    {
+        rtType =Far;
+    }
+    else
+    {
+        rtType =Normal;
+    }
+    if(distance1+distance2+distance3 > 24000)
+    {
+        if(abs(lfeye.x-normal[0].x)==0||abs(rteye.x-normal[1].x)==0||abs(mouth.x-normal[2].x)==0)
+        {
+            rtType = Normal;
+        }
+        else if(lfeye.x-normal[0].x>0&&rteye.x-normal[1].x>0&&mouth.x-normal[2].x>0)
+        {
+            if(abs(lfeye.y-normal[0].y)/abs(lfeye.x-normal[0].x)+abs(rteye.y-normal[1].y)/abs(rteye.x-normal[1].x)+abs(mouth.y-normal[2].y)/abs(mouth.x-normal[2].x) > 3)
+            {
+                if(lfeye.y-normal[0].y>0&&rteye.y-normal[1].y>0&&mouth.y-normal[2].y>0)
+                {
+                    rtType = Down;
+                }
+                else
+                {
+                    rtType = Up;
+                }
+            }
+            else
+            {
+                rtType = Left;
+            }
+        }
+        else if(abs(lfeye.y-normal[0].y)/abs(lfeye.x-normal[0].x)+abs(rteye.y-normal[1].y)/abs(rteye.x-normal[1].x)+abs(mouth.y-normal[2].y)/abs(mouth.x-normal[2].x) > 3)
+        {
             if( (lfeye.y-normal[0].y>0 && rteye.y-normal[1].y>0) ||mouth.y-normal[2].y>0)
-			{
-				rtType = Down;
-			}
-			else
-			{
-				rtType = Up;
-			}
-		}
-		else
-		{
-			rtType = Right;
-		}
-	}
-}
+            {
+                rtType = Down;
+            }
+            else
+            {
+                rtType = Up;
+            }
+        }
+        else
+        {
+            rtType = Right;
+        }
+    }
+}*/
 
 ///
 /// \brief FaceLogic::fetchJudgedMessage provide string format information.
 /// \param faceType
 /// \return Type in string format.
 ///
-QString FaceLogic::fetchJudgedMessage(FacePostureType faceType)
+QString FaceLogic::Enum2String(const CFaceClassfier::FaceType &faceType)
 {
-
     switch (faceType)
 	{
-        case Normal:
-            return QString("normal");
+        case CFaceClassfier::NORMAL:
+            return "Normal";
 			break;
-        case Profile:
-            return QString("profile face");
+        case CFaceClassfier::BACKWARD:
+            return "Backward";
 			break;
-        case Near:
-            return QString("too close");
+        case CFaceClassfier::FORWARD:
+            return "Forward";
 			break;
-        case Far:
-            return QString("too far");
+        case CFaceClassfier::LEFTWARD:
+            return "Leftward";
 			break;
-        case Left:
-            return QString("left");
+        case CFaceClassfier::RIGHTWARD:
+            return "Rightward";
 			break;
-        case Right:
-            return "right";
+        case CFaceClassfier::UNKNOWN:
+            return "Unknown";
 			break;
-        case Up:
-            return "up";
-			break;
-        case Down:
-            return "down";
-			break;
-        case NO_FACE:
-            return "no face detected";
-            break;
-        case Fault_FACE:
-            return "no entire face";
-            break;
     }
-
-    return QString();
-}
-
-///
-/// \brief FaceLogic::getRtType return current stored face type in enum format.
-/// \return Face type in enum format.
-///
-FacePostureType FaceLogic::getRtType()
-{
-    return rtType;
-}
-
-///
-/// \brief FaceLogic::setRtType
-/// provide method to set current rtType.
-/// \param rt
-///
-void FaceLogic::setRtType(FacePostureType rt)
-{
-    rtType =rt;
 }

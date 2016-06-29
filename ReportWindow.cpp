@@ -1,3 +1,4 @@
+#if NO
 #include "ReportWindow.h"
 #include "ui_ReportWindow.h"
 #include <QStandardItemModel>
@@ -63,3 +64,4 @@ void ReportWindow::setTable(QList<Log>& reportSet)
      }
 
 }
+#endif

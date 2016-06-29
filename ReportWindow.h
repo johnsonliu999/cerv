@@ -1,3 +1,4 @@
+#if NO
 #ifndef REPORTWINDOW_H
 #define REPORTWINDOW_H
 
@@ -26,3 +27,4 @@ private:
 };
 
 #endif // REPORTWINDOW_H
+#endif

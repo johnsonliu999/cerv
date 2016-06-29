@@ -1,3 +1,4 @@
+#if NO
 //dao
 #include "DAO.h"
 #include "cdatabase.h"
@@ -31,7 +32,7 @@ void DAO::insert(QSqlDatabase& db, const Log &log)
 /// \param[in] user
 /// \return Related log.
 ///
-QList<Log> DAO::query(QSqlDatabase& db, const QDate &date,const User &user)
+QList<Log> DAO::selectCoordinate(QSqlDatabase& db, const QDate &date,const User &user)
 {
     QSqlQuery query(db);
     query.prepare("select * from log where date=? and userid=?");
@@ -67,7 +68,7 @@ bool DAO::insert(QSqlDatabase& db, const User &user)
 {
     int id;
 
-    if(query(db, user.username,id))
+    if(selectCoordinate(db, user.username,id))
         throw QString("user already exist");
 
     db.transaction();
@@ -86,7 +87,7 @@ bool DAO::insert(QSqlDatabase& db, const User &user)
 /// \param[out] id
 /// \return Id of user.
 ///
-bool DAO::query(QSqlDatabase& db, const QString& username, int &id)
+bool DAO::selectCoordinate(QSqlDatabase& db, const QString& username, int &id)
 {
     QSqlQuery query(db);
     query.prepare("select * from user where username=?");
@@ -117,7 +118,6 @@ void DAO::insert(QSqlDatabase &db, const Predictor &predictor)
     if (!query.exec())
     {
         db.rollback();
-        db.close();
         throw QString("Insert predictor error.");
     }
 
@@ -131,7 +131,7 @@ void DAO::insert(QSqlDatabase &db, const Predictor &predictor)
 /// \param[in] user
 /// \return Predictor model.
 ///
-Predictor DAO::query(QSqlDatabase& db, const User &user)
+Predictor DAO::selectCoordinate(QSqlDatabase& db, const User &user)
 {
     QSqlQuery query(db);
     query.prepare("select * from predictor where userid =:userid");
@@ -179,3 +179,71 @@ void DAO::update(QSqlDatabase& db, const Predictor& predictor)
         qDebug() << "query is not active";
 }
 
+#include "cfaceclassfier.h"
+#include "cv.h"
+#include "MySession.h"
+void DAO::insert(QSqlDatabase &db, const OrgansCoordinate &coordinate)
+{
+    QSqlQuery query(db);
+
+    query.prepare("insert into organ_coordinate"
+                  "(mouth_x, mouth_y, "
+                  "left_eye_x, left_eye_y,"
+                  "right_eye_x, right_eye_y,"
+                  "user_id) values(?,?,?,?,?,?,?)");
+    query.addBindValue(coordinate.mouth.x());
+    query.addBindValue(coordinate.mouth.y());
+    query.addBindValue(coordinate.leftEye.x());
+    query.addBindValue(coordinate.leftEye.y());
+    query.addBindValue(coordinate.rightEye.x());
+    query.addBindValue(coordinate.rightEye.y());
+    query.addBindValue(Session::user.userid);
+
+    if (!query.exec()) throw QString("Insert coordinate failed : "+query.lastError().text());
+
+    qDebug() << "Insert coordinate succeed.";
+    qDebug() << query.numRowsAffected() << "rows affected.";
+}
+
+OrgansCoordinate DAO::selectCoordinate(QSqlDatabase &db, const User &user)
+{
+    QSqlQuery query(db);
+    query.prepare("select * from predictor where userid = ?");
+    query.addBindValue(user.userid);
+    if (!query.exec()) throw QString("Query coordinate failed : ")+query.lastError().text();
+    if (!query.size()) throw QString("No record.");
+
+    OrgansCoordinate res;
+    query.next();
+    res.mouth.setX(query.value("mouth_x").toInt());
+    res.mouth.setY(query.value("mouth_y").toInt());
+    res.mouth.setX(query.value("left_eye_x").toInt());
+    res.mouth.setY(query.value("left_eye_y").toInt());
+    res.mouth.setX(query.value("right_eye_x").toInt());
+    res.mouth.setY(query.value("right_eye_y").toInt());
+
+    return res;
+}
+
+void DAO::update(QSqlDatabase &db, const OrgansCoordinate &coordinate)
+{
+    QSqlQuery query(db);
+
+    query.prepare("update organs_coordinate set mouth_x=?,mouth_y=?,"
+                  "left_eye_x=? ,left_eye_y=?,"
+                  "right_eye_x=?, right_eye_y=? where user_id=?");
+    query.addBindValue(coordinate.mouth.x());
+    query.addBindValue(coordinate.mouth.y());
+    query.addBindValue(coordinate.leftEye.x());
+    query.addBindValue(coordinate.leftEye.y());
+    query.addBindValue(coordinate.rightEye.x());
+    query.addBindValue(coordinate.rightEye.y());
+    query.addBindValue(Session::user.userid);
+
+    if (!query.exec()) throw QString("Update coordinate failed : ")+query.lastError().text();
+
+    qDebug() << "update coordinate succeed.";
+    qDebug() << query.numRowsAffected() << "rows affected.";
+}
+
+#endif

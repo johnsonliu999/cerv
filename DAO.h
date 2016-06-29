@@ -1,3 +1,4 @@
+#if NO
 #ifndef DAO_H
 #define DAO_H
 
@@ -12,6 +13,8 @@
 
 class QSqlDatabase;
 
+struct OrgansCoordinate;
+
 /**
    all data access interface defined here.
 */
@@ -23,14 +26,23 @@ class DAO
 {
 public:
     static void insert(QSqlDatabase &db, const Log& log);
-    static  QList<Log> query(QSqlDatabase& db, const QDate& date, const User& user);
+
+
     static bool insert(QSqlDatabase &db, const User& user);
-	
     static bool query(QSqlDatabase& db, const QString& username,int& id);
 
     static void insert(QSqlDatabase& db, const Predictor& predictor);
     static Predictor query(QSqlDatabase& db, const User& user);
     static void update(QSqlDatabase& db, const Predictor &predictor);
+
+    static void insert(QSqlDatabase &db, const OrgansCoordinate& coordinate);
+    static OrgansCoordinate query(QSqlDatabase &db, const User &user);
+    static void update(QSqlDatabase &db, const OrgansCoordinate& coordinate);
+
+    static  QList<Log> query(QSqlDatabase& db, const QDate& date, const User& user);
+
+
 };
 
 #endif // DAO_H
+#endif

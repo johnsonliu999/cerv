@@ -10,10 +10,11 @@
  */
 struct  Predictor
 {
-   int id;
+   int userId;
    QByteArray xml;
-   User user;
-   explicit Predictor(int _id =0):id(_id){}
+
+    Predictor(const int& userId, const QByteArray& xml) : userId(userId), xml(xml) {}
+//   explicit Predictor(int _id =0):id(_id){}
 };
 #endif // PREDICTOR
 

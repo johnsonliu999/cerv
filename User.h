@@ -1,3 +1,4 @@
+#if NO
 #ifndef USER_H
 #define USER_H
 
@@ -17,3 +18,4 @@ public:
 };
 
 #endif // USER_H
+#endif

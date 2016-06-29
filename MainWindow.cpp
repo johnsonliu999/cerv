@@ -12,7 +12,6 @@
 //sit
 #include "SitLogic.h"
 //face
-#include "capture.h"
 #include "FaceLogic.h"
 #include "collectdialog.h"
 
@@ -24,10 +23,13 @@
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
     ui(new Ui::MainWindow),
+    mp_db(new CDatabase("main_window", DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306))),
     mp_sitProcTimer(new QTimer),
     mp_cameraTimer(new QTimer),
-    mp_sitLogic(new SitLogic(Session::user)),
-    mp_sitLogicThd(new QThread)
+    mp_sitLogic(new SitLogic),
+    mp_faceLogic(new FaceLogic),
+    mp_sitLogicThd(new QThread),
+    mp_faceLogicThd(new QThread)
 {
     ui->setupUi(this);
 
@@ -38,43 +40,38 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     for (int i = 0; i < portList.length(); i++)
         ui->COMComboBox->addItem(portList[i].portName());
 
-    // begin connection
+    /* begin connection */
     connect(mp_sitProcTimer,&QTimer::timeout,this,&MainWindow::sitTask);
     connect(mp_cameraTimer, &QTimer::timeout, this, &MainWindow::cameraTask);
 
-    connect(this, &MainWindow::updateSitData, mp_sitLogic, &SitLogic::updateSitData);
+    // sit
+    connect(this, &MainWindow::updateSitRes, mp_sitLogic, &SitLogic::updateSitRes);
     connect(this, &MainWindow::updateModel, mp_sitLogic, &SitLogic::updateModel);
-    connect(mp_sitLogic, &SitLogic::updatePlainText, this, &MainWindow::updatePlainText);
+    connect(mp_sitLogic, &SitLogic::updateDisp, this, &MainWindow::updateSitDisp);
     connect(mp_sitLogic, &SitLogic::info, this, &MainWindow::info);
-    // end connection
 
-    // begin DB initialization
-    DBParams params;
-    params.database = "QMYSQL";
-    params.host = "localhost";
-    params.database = "neck";
-    params.user = "root";
-    params.password = "qq452977491";
-    params.port = 3306;
-    m_db = CDatabase("main_win", params);
-    // end DB initialization
+    // face
+    connect(this, &MainWindow::updateFaceRes, mp_faceLogic, &FaceLogic::updateFaceRes);
+    connect(mp_faceLogic, &FaceLogic::updateDisp, this, &MainWindow::updateFaceDisp);
+    connect(mp_faceLogic, &FaceLogic::info, this, &MainWindow::info);
+    /* end connection */
 
     mp_sitLogic->moveToThread(mp_sitLogicThd);
     mp_sitLogicThd->start();
+
+    mp_faceLogic->moveToThread(mp_faceLogicThd);
+    mp_faceLogicThd->start();
 }
 
 MainWindow::~MainWindow()
 {
     QSqlDatabase::removeDatabase("main_win");
-    delete ui;
-    delete mp_sitProcTimer;
-}
 
+    mp_faceLogicThd->quit();
+    mp_faceLogicThd->wait();
 
-void MainWindow::sitProc()
-{
-    qDebug() << "emit updateSitData";
-    emit updateSitData(ui->COMComboBox->currentText());
+    mp_sitLogicThd->quit();
+    mp_faceLogicThd->wait();
 }
 
 void MainWindow::shakeFrm()
@@ -82,10 +79,15 @@ void MainWindow::shakeFrm()
 
 }
 
-// slots
-void MainWindow::updatePlainText(const QString text)
+/* slots */
+void MainWindow::updateSitDisp(const QString text)
 {
-    ui->seatInfoEdit->setPlainText(text);
+    ui->sitDisp->setText(text);
+}
+
+void MainWindow::updateFaceDisp(const QString text)
+{
+    ui->faceDisp->setText(text);
 }
 
 void MainWindow::info(const QString title, const QString text)
@@ -93,27 +95,20 @@ void MainWindow::info(const QString title, const QString text)
     QMessageBox::information(this, title, text, QMessageBox::Ok);
 }
 
-bool first =true;
-int face_duration =0;
-FacePostureType previous;
-QTime start_t;
-QTime end_t;
-
 void MainWindow::sitTask()
 {
-    ui->label->setPixmap(QPixmap::fromImage(detect()));
+    emit updateSitRes(ui->COMComboBox->currentText());
+}
 
-    sitProc();
-
+void MainWindow::cameraTask()
+{
+    emit updateFaceRes();
+    /*
     if(first)
     {
         previous =FaceLogic::getRtType();
         first =false;
         start_t =QTime::currentTime();
-    }
-    if(FaceLogic::getRtType() == previous)
-    {
-        face_duration++;
     }
     else
     {
@@ -131,9 +126,9 @@ void MainWindow::sitTask()
             log.user =Session::user;
 
             try{
-                QSqlDatabase db = m_db.getDB();
+                m_db.openDB();
                 DAO::insert(db, log);
-                db.close();
+                m_db.closeDB();
             } catch (const QString& e)
             {
                 QMessageBox::information(this, "Error", e, QMessageBox::Ok);
@@ -169,56 +164,72 @@ void MainWindow::sitTask()
         }
     }
     ui->plainTextEdit->setPlainText(FaceLogic::fetchJudgedMessage());
+    */
 }
 
 void MainWindow::on_MainWindow_destroyed()
 {
-     closeCamera();
 }
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
+#if NO
     try{
-        QSqlDatabase db = m_db.getDB();
-        QList<Log> logs =DAO::query(db, const_cast<QDate&>(date),Session::user);
-        db.close();
+        mp_db->openDB();
+        QList<Log> logs =DAO::selectCoordinate(db, const_cast<QDate&>(date),Session::user);
+        mp_db->closeDB();
         ReportWindow* w =new ReportWindow(logs,this);
         w->show();
     }catch (const QString& e)
     {
         QMessageBox::information(this, "Error", e, QMessageBox::Ok);
     }
+#endif
 }
 
 void MainWindow::on_actionTrain_triggered()
 {
-    QString portName(ui->COMComboBox->currentText());
-    bool b_replace = false;
-
     try{
-        if ("" == portName) throw QString("No selected COM");
-        QSqlDatabase db = m_db.getDB();
-        Predictor p = DAO::query(db, Session::user);
-        db.close();
-        if (p.id)
-        {
-            int res = QMessageBox::question(this, "Predictor model detected.", "Would you like to replace the existed model?", QMessageBox::Yes, QMessageBox::No);
-            if (res == QMessageBox::No) return;
-            else b_replace = true;
-        }
-    } catch (const QString& e)
+        mp_db->openDB();
+    } catch(const QString &e)
     {
         QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
         return ;
     }
 
+    bool b_exist = true;
+    try{
+        mp_db->selectXml(); // check if model exists
+        mp_db->closeDB();
+    } catch (const QString& e)
+    {
+        mp_db->closeDB();
+        if (!e.contains("no record", Qt::CaseInsensitive))
+        {
+            QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
+            return ;
+        }
+        else b_exist = false;
+    }
+    if (b_exist)
+    {
+        int res = QMessageBox::question(this, "Predictor model detected.",
+                              "Would you like to replace the existed model?",
+                              QMessageBox::Yes, QMessageBox::No);
+        if (res == QMessageBox::No) return;
+    }
+
+    QString portName(ui->COMComboBox->currentText());
+    if (portName == "")
+    {
+        QMessageBox::information(this, "No COM", "No COM is selected.", QMessageBox::Ok);
+        return;
+    }
+
     ui->COMComboBox->setEnabled(false);
-
-    collectDialog c(portName, b_replace);
+    collectDialog c(portName, b_exist);
     c.exec();
-
     ui->COMComboBox->setEnabled(true);
-
 }
 
 void MainWindow::on_connectButton_clicked()
@@ -251,7 +262,6 @@ void MainWindow::on_startButton_clicked()
         QString portName(ui->COMComboBox->currentText());
         try
         {
-            openCamera();
             if ("" == portName) throw QString("No selected COM.");
             emit updateModel();
         }catch (const QString& e)

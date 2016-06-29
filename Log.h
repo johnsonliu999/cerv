@@ -1,3 +1,4 @@
+#if NO
 #ifndef LOG_H
 #define LOG_H
 
@@ -37,3 +38,4 @@ public:
 
 
 #endif // LOG_H
+#endif

@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QAbstractButton>
 
+#include "cdatabase.h"
+
 namespace Ui {
 class registerDialog;
 }
@@ -23,6 +25,7 @@ private slots:
 
 private:
     Ui::registerDialog *ui;
+    CDatabase* mp_db;
 };
 
 #endif // REGISTERDIALOG_H

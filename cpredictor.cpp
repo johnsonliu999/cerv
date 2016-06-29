@@ -26,18 +26,12 @@ const int SIT_TYPE_NUM = 5;
 /// \brief CPredictor::CPredictor
 /// construct CPredictor and connect DB.
 ///
-CPredictor::CPredictor():iData(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1),
-    iLabel(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1)
+CPredictor::CPredictor():
+    iData(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, ATTRIBUTE_PRE_SAMPLE, CV_32FC1),
+    iLabel(NUMBER_OF_TRAINING_SAMPLE_PER_CLASS * 5, 1, CV_32SC1),
+    mp_db(new CDatabase("predictor",
+            DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306)))
 {
-    DBParams params;
-    params.database = "QMYSQL";
-    params.host = "localhost";
-    params.database = "neck";
-    params.user = "root";
-    params.password = "qq452977491";
-    params.port = 3306;
-
-    m_db = CDatabase("predictor", params);
 }
 
 CPredictor::~CPredictor()
@@ -52,7 +46,7 @@ CPredictor::~CPredictor()
  * @param pnPredictData：由各个特征组成的数组，NUMBER_OF_TRAINING_SAMPLE_PER_CLASS项
  * @return ：坐姿的枚举类型
  */
-CPredictor::eSitType CPredictor::predict(const QList<int> & iPredictDataList)
+CPredictor::SitType CPredictor::classify(const QList<int> & iPredictDataList)
 {
     Mat iPredictData = Mat(1, ATTRIBUTE_PRE_SAMPLE, CV_32FC1);
     Mat iPredictLabel = Mat(1,1, CV_32SC1);
@@ -65,7 +59,7 @@ CPredictor::eSitType CPredictor::predict(const QList<int> & iPredictDataList)
     qDebug() << "Finished predict";
     qDebug() << "The result is" << nPredictLable;
 
-    return static_cast<eSitType>(nPredictLable);
+    return static_cast<SitType>(nPredictLable);
 }
 
 
@@ -126,12 +120,12 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  *
  * @param type
  */
-void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
+void CPredictor::collectCertainType(const CSerialReader& reader,SitType type)
 {
     QList< QList<int> > recList; // 每个类型的记录条数，用来判断是否达标
     int total = 0;
 
-    qDebug() << "Now collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, please keep";
+    qDebug() << "Now collect" <<" SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, please keep";
     // since the matrix start with 0
     while (total + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
@@ -155,7 +149,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
         QThread::sleep(5);
     }
 
-    qDebug() << "finished collect" <<" SitType ["  <<SitLogic::fetchJudgedMessage(type)<<"] "<< "data, congratulation";
+    qDebug() << "finished collect" <<" SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, congratulation";
 
 }
 
@@ -166,7 +160,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,eSitType type)
 /// \param type
 /// \param data
 ///
-void CPredictor::storeTrainData(CPredictor::eSitType type, const QList<QList<int> > & data)
+void CPredictor::storeTrainData(CPredictor::SitType type, const QList<QList<int> > & data)
 {
     for (int j = 0; j < data.size(); j++)
     {
@@ -186,46 +180,50 @@ void CPredictor::storeTrainData(CPredictor::eSitType type, const QList<QList<int
 ///
 /// \param user
 ///
-void CPredictor::loadFromDB(const User& user)
+void CPredictor::loadFromDB()
 {
-    QSqlDatabase db = m_db.getDB();
-    Predictor p;
+    mp_db->openDB();
+    QByteArray xml;
     try{
-        p =DAO::query(db, user);
+        xml = mp_db->selectXml();
     } catch (const QString& e)
     {
+        mp_db->closeDB();
         throw e;
-        db.close();
     }
 
-    if(p.id)
-        mp_trees=mp_trees->loadFromString<RTrees>((String)p.xml.toStdString());
-    db.close();
+    mp_trees=mp_trees->loadFromString<RTrees>((String)xml.toStdString());
+    mp_db->closeDB();
 }
 
 
 #include <QFile>
-void CPredictor::save2DB(bool b_replace)
+void CPredictor::save2DB(bool b_exist)
 {
-    mp_trees->save("temp.xml");
+    try{
+        mp_db->openDB();
+    } catch(const QString &e)
+    {
+        qDebug() << "save2DB:" << e;
+        throw e;
+    }
 
+    mp_trees->save("temp.xml");
     //read file to database,and delete the temp file.
-    Predictor p;
-    p.user = Session::user;
     QFile f("temp.xml");
     f.open(QIODevice::ReadOnly);
-    p.xml = f.readAll();
+    QByteArray xml = f.readAll();
     try{
-        QSqlDatabase db = m_db.getDB();
-        if (b_replace) DAO::update(db, p);
-        else DAO::insert(db, p);
-        db.close();
+        if(b_exist) mp_db->updateXml(xml);
+        else mp_db->insertXml(xml);
     } catch(const QString& e)
     {
         f.remove();
+        mp_db->closeDB();
         emit information("Save2DB", e);
     }
 
+    mp_db->closeDB();
     f.remove();
 }
 
@@ -247,8 +245,8 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
 
         for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
-            emit information("Collect information", "Going to collect " + SitLogic::fetchJudgedMessage((CPredictor::eSitType)i) + " data");
-            collectCertainType(reader, (eSitType)i);
+            emit information("Collect information", "Going to collect " + SitLogic::Enum2String((CPredictor::SitType)i) + " data");
+            collectCertainType(reader, (SitType)i);
         }
 
         emit information("Collect information", "Finished collect");

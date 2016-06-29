@@ -1,3 +1,4 @@
+#if NO
 #include "capture.h"
 #include "FaceLogic.h"
 
@@ -36,13 +37,12 @@ using namespace cv;
 
 
 
- bool initial =FaceLogic::isInitialized();
+// bool initial =FaceLogic::isInitialized();
 
 
  VideoCapture cap;
  void openCamera()
  {
-
      if(cap.isOpened())
          return;
      //-- 1. Load the cascades
@@ -213,7 +213,7 @@ QImage detect()
 
 }
 
- void triangle(Mat& frame,const Point& x1,const Point& x2,const Point& x3)
+void triangle(Mat& frame,const Point& x1,const Point& x2,const Point& x3)
 {
 	line(frame,x1,x2,Scalar(0,0,0));
 	line(frame,x2,x3,Scalar(0,0,0));
@@ -338,4 +338,4 @@ cv::Mat QImage2cvMat(QImage image)
     }
     return mat;
 }
-
+#endif

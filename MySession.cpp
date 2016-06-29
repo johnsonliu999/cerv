@@ -1,3 +1,6 @@
+#ifndef SESSION_H
 #include "MySession.h"
 
-User Session::user =User();
+QString Session::Username;
+int Session::UserId;
+#endif

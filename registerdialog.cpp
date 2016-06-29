@@ -7,9 +7,9 @@
 #include "cdatabase.h"
 registerDialog::registerDialog(QWidget *parent) :
     QDialog(parent),
+    mp_db(new CDatabase("register", DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306))),
     ui(new Ui::registerDialog)
 {
-
     ui->setupUi(this);
 }
 
@@ -21,23 +21,22 @@ registerDialog::~registerDialog()
 
 void registerDialog::on_buttonBox_accepted()
 {
-    DBParams params;
-    params.database = "QMYSQL";
-    params.host = "localhost";
-    params.database = "neck";
-    params.user = "root";
-    params.password = "qq452977491";
-    params.port = 3306;
+    try{
+        mp_db->openDB();
+    } catch(const QString &e)
+    {
+        QMessageBox::information(this, "Database errror", e, QMessageBox::Ok);
+        return ;
+    }
 
-    CDatabase d("register", params);
     try
     {
-        QSqlDatabase db = d.getDB();
-        if(DAO::insert(db, User(ui->registerLineEdit->text())))
-            accept();
-        db.close();
+        mp_db->insertUserName(ui->registerLineEdit->text());
+        accept();
+        mp_db->closeDB();
     }catch (const QString & e)
     {
+        mp_db->closeDB();
         QMessageBox::information(this, "Database errror", e, QMessageBox::Ok);
     }
 

@@ -7,6 +7,7 @@
 #include "cdatabase.h"
 
 class SitLogic;
+class FaceLogic;
 
 namespace Ui {
 class MainWindow;
@@ -25,11 +26,13 @@ private:
     void sitProc();
 
 signals:
-    void updateSitData(const QString portName);
+    void updateSitRes(const QString portName);
+    void updateFaceRes();
     void updateModel();
 
 public slots:
-    void updatePlainText(const QString text);
+    void updateSitDisp(const QString text);
+    void updateFaceDisp(const QString text);
 
     void info(const QString title, const QString text);
 
@@ -48,11 +51,14 @@ private:
 
     QTimer* mp_sitProcTimer;
     QTimer* mp_cameraTimer;
-    SitLogic* mp_sitLogic;
-    QThread* mp_sitLogicThd;
 
+    SitLogic* mp_sitLogic;
+    FaceLogic* mp_faceLogic;
+
+    QThread* mp_sitLogicThd;
+    QThread* mp_faceLogicThd;
     const bool wired;
-    CDatabase m_db;
+    CDatabase* mp_db;
 };
 
 #endif // MAINWINDOW_H

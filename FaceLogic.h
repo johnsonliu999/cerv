@@ -4,40 +4,59 @@
 
 
 #include "core/core.hpp"
+
+
 #include <QList>
 #include <QString>
+#include <QObject>
+
 using namespace cv;
 
-enum FacePostureType{ Normal, Profile,NO_FACE,Fault_FACE, Near, Far, Left, Right, Up, Down};
+
+#include "cfaceclassfier.h"
+#include "ccamerareader.h"
 
 ///
 /// \brief The FaceLogic class
 /// process face related logic.
 ///
-class FaceLogic
+class FaceLogic : public QObject
 {
+    Q_OBJECT
 public:
+    FaceLogic();
+    ~FaceLogic();
 
-    static bool storeNormalValue(const Point&,const Point&,const Point&);
+    static QString Enum2String(const CFaceClassfier::FaceType &faceType);
 
-    static QList<Point> getNormalValue();
+    void start();
+    void stop();
+
+//    static bool storeNormalValue(const Point&,const Point&,const Point&);
+
+//    static QList<Point> getNormalValue();
 
 
-    static void judgeFacePosture(const Point&,const Point&,const Point&);
-
-    static QString fetchJudgedMessage(FacePostureType faceType=rtType);
+//    static void judgeFacePosture(const Point&,const Point&,const Point&);
 
 
-    static FacePostureType getRtType();
-    static void setRtType(FacePostureType rtType);
+//	static bool isInitialized();
 
 private:
+    CFaceClassfier::FaceType getRecentRes();
 
-    static FacePostureType rtType;
-    static QList<Point> normal;
+signals:
+    void updateDisp(QString text);
+    void info(QString title, QString text);
 
-public:
-	static bool isInitialized();
+public slots:
+    void updateFaceRes();
+
+private:
+    QList<CFaceClassfier::FaceType> *mp_resList;
+    QList<int> *mp_statList;
+    CFaceClassfier *mp_classifier;
+    CCameraReader *mp_reader;
 };
 
 #endif //FACELOGIC_H

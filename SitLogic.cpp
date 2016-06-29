@@ -1,22 +1,16 @@
 #include "SitLogic.h"
+#include "MySession.h"
 
 const int RES_NUM = 5; ///< the number of results kept by stType
 const int TYPE_NUM = 5;
-
-/// SitLogic is mainly used for processing 'sit' related operation.
-/// * SitLogic object is bound with a user.
-
-
-
 ///
 /// \brief SitLogic::SitLogic
 /// initialize the statistic list
 ///
-SitLogic::SitLogic(const User& user) :
+SitLogic::SitLogic() :
     mp_statList(new QList<int>),
-    mp_resList(new QList<CPredictor::eSitType>),
-    mp_predictor(new CPredictor),
-    m_user(user)
+    mp_resList(new QList<CPredictor::SitType>),
+    mp_predictor(new CPredictor)
 {
     for (int i = 0; i < TYPE_NUM; i++)
         *mp_statList << 0;
@@ -26,7 +20,7 @@ SitLogic::SitLogic(const User& user) :
 /// \brief SitLogic::getSitType return list of recent sit type.
 /// \return List of recent seat type.
 ///
-CPredictor::eSitType SitLogic::getRecentRes()
+CPredictor::SitType SitLogic::getRecentRes()
 {
     int ind = 0;
     for (int i = 0; i < TYPE_NUM; i++)
@@ -35,7 +29,7 @@ CPredictor::eSitType SitLogic::getRecentRes()
             ind = i;
     }
 
-    return CPredictor::eSitType(ind);
+    return CPredictor::SitType(ind);
 }
 
 ///
@@ -75,19 +69,22 @@ void SitLogic::readOnce(const QString& portName)
             (*mp_statList)[(int)(*mp_resList)[0]]--;
             mp_resList->removeFirst();
         }
-        CPredictor::eSitType res = mp_predictor->predict(records[i]);
+        CPredictor::SitType res = mp_predictor->classify(records[i]);
         mp_resList->append(res);
         (*mp_statList)[(int)res]++;
     }
 }
 
 ///
-/// \brief SitLogic::updateSitData
+/// \brief SitLogic::updateSitRes
+/// update recent result of classification.
+/// Wait for [updatePlainText] to use.
+///
 /// Time cost : 2445 msecs
 ///
 /// \param portName
 ///
-void SitLogic::updateSitData(const QString portName)
+void SitLogic::updateSitRes(const QString portName)
 {
     qDebug() << "updateSitData called";
 
@@ -102,13 +99,14 @@ void SitLogic::updateSitData(const QString portName)
     QTime t2 = QTime::currentTime();
     qDebug() << "time cost :" << t1.msecsTo(t2);
 
-    emit updatePlainText(fetchJudgedMessage(getRecentRes()));
+    emit updateDisp(Enum2String(getRecentRes()));
 }
+
 
 void SitLogic::updateModel()
 {
     try {
-        mp_predictor->loadFromDB(m_user);
+        mp_predictor->loadFromDB();
     } catch(const QString& e)
     {
         emit info("updateModel", e);
@@ -120,7 +118,7 @@ void SitLogic::updateModel()
 /// \param sitType
 /// \return Seat type in string format.
 ///
-QString SitLogic::fetchJudgedMessage(CPredictor::eSitType sitType)
+QString SitLogic::Enum2String(CPredictor::SitType sitType)
 {
     switch (sitType) {
     case CPredictor::NORMAL:

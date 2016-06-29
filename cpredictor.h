@@ -24,24 +24,24 @@ class CPredictor : public QObject
     Q_OBJECT
 public:
     Ptr<RTrees> mp_trees;
-    enum eSitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
+    enum SitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
 
 private:
     Mat  iData;
     Mat  iLabel;
-    CDatabase m_db;
+    CDatabase* mp_db;
 
 public:
     CPredictor();
     ~CPredictor();
 
-    eSitType predict(const QList<int> & iPredictData);
-    void loadFromDB(const User &user);
-    void save2DB(bool r_replace);
+    SitType classify(const QList<int> & iPredictData);
+    void loadFromDB();
+    void save2DB(bool b_exist);
     void train();
     bool isTrained();
-    void collectCertainType(const CSerialReader&, eSitType type);
-    void storeTrainData(eSitType type,const QList<QList<int>>& data);
+    void collectCertainType(const CSerialReader&, SitType type);
+    void storeTrainData(SitType type,const QList<QList<int>>& data);
 
 public slots:
     void trainData(QString portName, const bool b_replace);

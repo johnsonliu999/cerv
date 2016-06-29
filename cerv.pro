@@ -54,7 +54,9 @@ HEADERS += \
     TotalLogic.h \
     User.h \
     Utils.h \
-    connectdialog.h
+    connectdialog.h \
+    ccamerareader.h \
+    cfaceclassfier.h
 
 SOURCES += \
     capture.cpp \
@@ -71,7 +73,9 @@ SOURCES += \
     registerdialog.cpp \
     ReportWindow.cpp \
     SitLogic.cpp \
-    connectdialog.cpp
+    connectdialog.cpp \
+    ccamerareader.cpp \
+    cfaceclassfier.cpp
 
 
 DISTFILES += \

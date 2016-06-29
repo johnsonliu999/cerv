@@ -16,28 +16,30 @@ class SitLogic : public QObject
 {
     Q_OBJECT
 public:
-    SitLogic(const User &user);
+    SitLogic();
 
-    static QString fetchJudgedMessage(CPredictor::eSitType sitType);
+    static QString Enum2String(CPredictor::SitType sitType);
 
-    CPredictor::eSitType getRecentRes();
+    void start();
+    void stop();
+
 
 private:
     void readOnce(const QString &portName);
+    CPredictor::SitType getRecentRes();
 
 public slots:
-    void updateSitData(const QString portName);
+    void updateSitRes(const QString portName);
     void updateModel();
 
 signals:
-    void updatePlainText(const QString text);
+    void updateDisp(const QString text);
     void info(const QString title, const QString text);
 
 private:
-    QList<CPredictor::eSitType>* mp_resList;
+    QList<CPredictor::SitType>* mp_resList;
     QList<int>* mp_statList;
     CPredictor* mp_predictor;
-    const User m_user;
 };
 
 

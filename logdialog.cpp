@@ -1,28 +1,22 @@
 #include "logdialog.h"
 #include "ui_logdialog.h"
-#include <QMessageBox>
+
 #include "DAO.h"
-#include "User.h"
+//#include "User.h"
 #include "MySession.h"
 #include <QDebug>
 #include "registerdialog.h"
 
 #include "cdatabase.h"
+
+#include <QMessageBox>
+
 LogDialog::LogDialog(QWidget *parent) :
     QDialog(parent),
+    mp_db(new CDatabase("login", DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306))),
     ui(new Ui::LogDialog)
 {
     ui->setupUi(this);
-
-    DBParams params;
-    params.database = "QMYSQL";
-    params.host = "localhost";
-    params.database = "neck";
-    params.user = "root";
-    params.password = "qq452977491";
-    params.port = 3306;
-
-    mp_db = new CDatabase("login", params);
 }
 
 LogDialog::~LogDialog()
@@ -36,31 +30,26 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
 
     if (ui->buttonBox->button(QDialogButtonBox::Ok) == (QPushButton*)button)
     {
-        QSqlDatabase db;
         try{
-            db = mp_db->getDB();
+            mp_db->openDB();
         } catch(const QString& e)
         {
             QMessageBox::information(this, "getDB", e, QMessageBox::Ok);
             return ;
         }
 
-        int id;
         try{    
-            if (DAO::query(db, ui->nameLineEdit->text(), id))
-            {
-                Session::user.userid = id; // to be decided
-                Session::user.username = ui->nameLineEdit->text();
-            }
-            else throw QString("User not exist");
+            Session::UserId = mp_db->selectUserId(ui->nameLineEdit->text());
         }catch(const QString & e)
         {
-            db.close();
-            QMessageBox::information(this, "Database connect error", e, QMessageBox::Yes);
+            mp_db->closeDB();
+            QMessageBox::information(this, "selectUserId", e, QMessageBox::Ok);
             return;
         }
 
-        db.close();
+        Session::Username = ui->nameLineEdit->text();
+
+        mp_db->closeDB();
         accept();
     }
     else if(ui->buttonBox->button(QDialogButtonBox::Cancel) == (QPushButton*)button)
