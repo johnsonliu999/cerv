@@ -40,6 +40,7 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
 
         try{    
             Session::UserId = mp_db->selectUserId(ui->nameLineEdit->text());
+            mp_db->closeDB();
         }catch(const QString & e)
         {
             mp_db->closeDB();
@@ -48,8 +49,6 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
         }
 
         Session::Username = ui->nameLineEdit->text();
-
-        mp_db->closeDB();
         accept();
     }
     else if(ui->buttonBox->button(QDialogButtonBox::Cancel) == (QPushButton*)button)

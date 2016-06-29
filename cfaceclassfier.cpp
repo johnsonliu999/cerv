@@ -1,15 +1,19 @@
 #include "cfaceclassfier.h"
 #include "ccamerareader.h"
+#include "ccamerareader.h"
+#include "cdatabase.h"
 
 /* cv */
-#include "core/cvstd.hpp"
+#include "cv.h"
 #include "objdetect.hpp"
 #include "imgproc.hpp"
 
 
 #include <QString>
 #include <QDebug>
-#include "cdatabase.h"
+#include <QTime>
+
+
 
 using namespace cv;
 
@@ -26,6 +30,11 @@ CFaceClassfier::CFaceClassfier() :
     mp_profileClassfier(new CascadeClassifier),
     mp_coordinate(new OrgansCoordinate)
 {
+}
+
+CFaceClassfier::~CFaceClassfier()
+{
+
 }
 
 CFaceClassfier::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
@@ -174,6 +183,24 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
     return res;
 }
 
+QPoint CFaceClassfier::calcAverage(const QList<QPoint> &pointList)
+{
+    if (!pointList.size()) throw QString("CFaceClassfier::calcAverage : list empty");
+
+    int x = 0;
+    int y = 0;
+    for (int i = 0; i < pointList.size(); i++)
+    {
+        x += pointList[i].x();
+        y += pointList[i].y();
+    }
+
+    x /= pointList.size();
+    y /= pointList.size();
+
+    return QPoint(x, y);
+}
+
 ///
 /// \brief CFaceClassfier::loadModel
 /// loads classifier stored in file.
@@ -214,6 +241,37 @@ void CFaceClassfier::loadFromDB()
     mp_db->closeDB();
 }
 
+void CFaceClassfier::save2DB()
+{
+    try {
+        mp_db->openDB();
+    } catch(const QString &e)
+    {
+        qDebug() << "CFaceClassfier::save2DB : cannot open DB";
+        throw e;
+    }
+
+    try {
+        mp_db->selectCoordinate();
+    } catch(const QString &e)
+    {
+        mp_db->closeDB();
+        if (!e.contains("no record", Qt::CaseInsensitive))
+        {
+            qDebug() << "CFaceClassfier::save2DB() : can not select coordinate.";
+            throw e;
+        }
+    }
+
+    try {
+        save2DB(false);
+    } catch(const QString &e)
+    {
+        qDebug() << "CFaceClassfier::save2DB():" << e;
+        throw e;
+    }
+}
+
 ///
 /// \brief CFaceClassfier::saveToDB
 /// saves organs ordinate to DB.
@@ -227,13 +285,131 @@ void CFaceClassfier::save2DB(bool b_exist)
 
     try{
         if(b_exist) mp_db->updateCoordinate(*mp_coordinate);
-        else mp_db->updateCoordinate(*mp_coordinate);
+        else mp_db->insertCoordinate(*mp_coordinate);
         mp_db->closeDB();
     } catch (const QString &e)
     {
         mp_db->closeDB();
         throw e;
     }
+}
+
+
+void CFaceClassfier::train()
+{
+    try{
+        loadModel("./train_file/");
+    } catch(const QString &e)
+    {
+        qDebug() << "CFaceClassfier::train : cannot find model files.";
+        emit info("CFaceClassfier::train", e);
+        return ;
+    }
+
+    CCameraReader reader;
+    try {
+        reader.openCamera();
+    } catch(const QString &e)
+    {
+        qDebug() << "CFaceClassfier::train : open camera failed";
+        emit info("CFaceClassfier::train", e);
+        return ;
+    }
+
+    QTime t1 = QTime::currentTime();
+    QList<QPoint> leftEyeList, rightEyeList, mouthList;
+    int remainTime = 10*1000;
+    Mat frame;
+    while (remainTime > 0)
+    {
+        frame = reader.getFrame();
+        Mat grayFrame;
+        try{
+            grayFrame = framePreproc(frame);
+        } catch (const Exception &e)
+        {
+            qDebug() << "CFaceClassfier::train : frame preprocess exception";
+            continue;
+        }
+
+        std::vector<Rect> faces;
+        mp_faceClassfier->detectMultiScale(grayFrame, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
+        if (faces.size())
+        {
+            Rect face = getMaxRect(faces);
+            Rect r = Rect(face.x, face.y,
+                          face.width, face.height*0.5);
+            // eyes
+            Mat upperRegion = grayFrame(r);
+            std::vector<Rect> eyes;
+            mp_eyesClassfier->detectMultiScale(upperRegion, eyes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
+            if (eyes.size() == 2)
+            {
+                Rect leftEye, rightEye;
+                if (eyes[0].x > eyes[1].x)
+                {
+                    leftEye = eyes[0];
+                    rightEye = eyes[1];
+                }
+                else
+                {
+                    leftEye = eyes[1];
+                    rightEye = eyes[0];
+                }
+                leftEyeList << QPoint(leftEye.x+leftEye.width/2, leftEye.y+leftEye.height/2);
+                rightEyeList << QPoint(rightEye.x+leftEye.width/2, rightEye.y+leftEye.height/2);
+            }
+
+            // mouth
+            r = Rect(face.x+face.width/4,
+                     face.y+face.height*3/4,
+                     face.width/2,
+                     face.height/4);
+            Mat bottomRegion = grayFrame(r);
+            std::vector<Rect> mouths;
+            mp_mouthClassfier->detectMultiScale(bottomRegion, mouths, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
+            if (mouths.size())
+            {
+                Rect mouth = getMaxRect(mouths);
+                mouthList << QPoint(mouth.x+mouth.width/2, mouth.y+mouth.height/2);
+            }
+        }
+
+        emit updateDisp(CCameraReader::Mat2QImage(frame), QString::number(remainTime/1000.0, 'f', 2));
+        remainTime -= t1.msecsTo(QTime::currentTime());
+        QThread::msleep(500);
+    }
+    emit updateDisp(CCameraReader::Mat2QImage(frame), QString::number(0, 'f', 2));
+
+    qDebug() << leftEyeList.size() << rightEyeList.size() << mouthList.size();
+    try {
+        mp_coordinate->leftEye = calcAverage(leftEyeList);
+        mp_coordinate->rightEye = calcAverage(rightEyeList);
+        mp_coordinate->mouth = calcAverage(mouthList);
+    } catch(const QString &e)
+    {
+        qDebug() << "CFaceClassfier::train : certain organ can not be detect.\nMay take off glasses";
+        emit info("CFaceClassfier::train", e);
+        return ;
+    }
+
+    qDebug() << "Left Eye : " << mp_coordinate->leftEye.x() << mp_coordinate->leftEye.y();
+    qDebug() << "Right Eye : " << mp_coordinate->rightEye.x() << mp_coordinate->rightEye.y();
+    qDebug() << "Mouth : " << mp_coordinate->mouth.x() << mp_coordinate->mouth.y();
+
+    reader.closeCamera();
+
+    try {
+        save2DB();
+    } catch (const QString &e)
+    {
+        qDebug() << "CFaceClassfier::train : cannot save to DB.";
+        emit info("CFaceClassfier::train", e);
+        return ;
+    }
+
+    emit info("CFaceClassfier::train", "Train succeed.");
+    qDebug() << "Face train succeed.";
 }
 
 Rect CFaceClassfier::getMaxRect(const std::vector<Rect> &rects)

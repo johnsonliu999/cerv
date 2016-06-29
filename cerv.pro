@@ -6,6 +6,8 @@
 
 QT       += core gui sql serialport
 
+#CONFIG += c++11
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = cerv
@@ -29,7 +31,8 @@ FORMS += \
     MainWindow.ui \
     registerdialog.ui \
     ReportWindow.ui \
-    connectdialog.ui
+    connectdialog.ui \
+    trainfacewidget.ui
 
 INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
 D:/Download/OpenCV/opencv/build/include/opencv \
@@ -56,7 +59,8 @@ HEADERS += \
     Utils.h \
     connectdialog.h \
     ccamerareader.h \
-    cfaceclassfier.h
+    cfaceclassfier.h \
+    trainfacewidget.h
 
 SOURCES += \
     capture.cpp \
@@ -75,7 +79,8 @@ SOURCES += \
     SitLogic.cpp \
     connectdialog.cpp \
     ccamerareader.cpp \
-    cfaceclassfier.cpp
+    cfaceclassfier.cpp \
+    trainfacewidget.cpp
 
 
 DISTFILES += \

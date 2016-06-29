@@ -5,6 +5,7 @@
 #include <QTimer>
 
 #include "cdatabase.h"
+#include "trainfacewidget.h"
 
 class SitLogic;
 class FaceLogic;
@@ -45,6 +46,10 @@ private slots:
     void on_connectButton_clicked();
     void on_startButton_clicked();
 
+    void on_trainFace_triggered();
+
+    void on_trainSit_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -58,6 +63,8 @@ private:
     QThread* mp_faceLogicThd;
     const bool wired;
     CDatabase* mp_db;
+
+    TrainFaceWidget *mp_trainFaceWidget;
 };
 
 #endif // MAINWINDOW_H

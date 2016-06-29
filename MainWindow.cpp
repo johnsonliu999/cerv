@@ -19,6 +19,7 @@
 #include <QSerialPortInfo>
 
 #include "connectdialog.h"
+#include "trainfacewidget.h"
 
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
@@ -188,47 +189,7 @@ void MainWindow::on_calendarWidget_clicked(const QDate &date)
 
 void MainWindow::on_actionTrain_triggered()
 {
-    try{
-        mp_db->openDB();
-    } catch(const QString &e)
-    {
-        QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
-        return ;
-    }
 
-    bool b_exist = true;
-    try{
-        mp_db->selectXml(); // check if model exists
-        mp_db->closeDB();
-    } catch (const QString& e)
-    {
-        mp_db->closeDB();
-        if (!e.contains("no record", Qt::CaseInsensitive))
-        {
-            QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
-            return ;
-        }
-        else b_exist = false;
-    }
-    if (b_exist)
-    {
-        int res = QMessageBox::question(this, "Predictor model detected.",
-                              "Would you like to replace the existed model?",
-                              QMessageBox::Yes, QMessageBox::No);
-        if (res == QMessageBox::No) return;
-    }
-
-    QString portName(ui->COMComboBox->currentText());
-    if (portName == "")
-    {
-        QMessageBox::information(this, "No COM", "No COM is selected.", QMessageBox::Ok);
-        return;
-    }
-
-    ui->COMComboBox->setEnabled(false);
-    collectDialog c(portName, b_exist);
-    c.exec();
-    ui->COMComboBox->setEnabled(true);
 }
 
 void MainWindow::on_connectButton_clicked()
@@ -287,4 +248,55 @@ void MainWindow::on_startButton_clicked()
         ui->COMComboBox->setEnabled(true);
         ui->startButton->setText("Start");
     }
+}
+
+void MainWindow::on_trainFace_triggered()
+{
+    mp_trainFaceWidget = new TrainFaceWidget;
+    mp_trainFaceWidget->show();
+}
+
+void MainWindow::on_trainSit_triggered()
+{
+    try{
+        mp_db->openDB();
+    } catch(const QString &e)
+    {
+        QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
+        return ;
+    }
+
+    bool b_exist = true;
+    try{
+        mp_db->selectXml(); // check if model exists
+        mp_db->closeDB();
+    } catch (const QString& e)
+    {
+        mp_db->closeDB();
+        if (!e.contains("no record", Qt::CaseInsensitive))
+        {
+            QMessageBox::information(this, "train_triggered", e, QMessageBox::Ok);
+            return ;
+        }
+        else b_exist = false;
+    }
+    if (b_exist)
+    {
+        int res = QMessageBox::question(this, "Predictor model detected.",
+                              "Would you like to replace the existed model?",
+                              QMessageBox::Yes, QMessageBox::No);
+        if (res == QMessageBox::No) return;
+    }
+
+    QString portName(ui->COMComboBox->currentText());
+    if (portName == "")
+    {
+        QMessageBox::information(this, "No COM", "No COM is selected.", QMessageBox::Ok);
+        return;
+    }
+
+    ui->COMComboBox->setEnabled(false);
+    collectDialog c(portName, b_exist);
+    c.exec();
+    ui->COMComboBox->setEnabled(true);
 }

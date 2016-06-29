@@ -81,6 +81,7 @@ void FaceLogic::start()
 
     try{
         mp_classifier->loadModel("./train_file/");
+        mp_classifier->loadFromDB();
     } catch(const QString& e)
     {
         mp_reader->closeCamera();

@@ -545,7 +545,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>540</x>
@@ -662,12 +662,10 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>开始</string>
+     <string>Train</string>
     </property>
-    <addaction name="actionTrain"/>
-    <addaction name="action2"/>
-    <addaction name="action3"/>
-    <addaction name="action4"/>
+    <addaction name="trainFace"/>
+    <addaction name="trainSit"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -718,24 +716,14 @@
     <string/>
    </property>
   </widget>
-  <action name="actionTrain">
+  <action name="trainFace">
    <property name="text">
-    <string>train</string>
+    <string>Face</string>
    </property>
   </action>
-  <action name="action2">
+  <action name="trainSit">
    <property name="text">
-    <string>2</string>
-   </property>
-  </action>
-  <action name="action3">
-   <property name="text">
-    <string>3</string>
-   </property>
-  </action>
-  <action name="action4">
-   <property name="text">
-    <string>4</string>
+    <string>Sit</string>
    </property>
   </action>
   <action name="action2_edit">

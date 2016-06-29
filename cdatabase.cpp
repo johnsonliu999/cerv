@@ -110,8 +110,8 @@ void CDatabase::insertCoordinate(const OrgansCoordinate &coordinate)
     query.prepare("insert into organs_coordinate"
                   "(mouth_x, mouth_y,"
                   "left_eye_x, left_eye_y,"
-                  "right_eye_x, right_eye_y) "
-                  "where user_id=?");
+                  "right_eye_x, right_eye_y, user_id) "
+                  "values(?,?,?,?,?,?,?)");
     query.addBindValue(coordinate.mouth.x());
     query.addBindValue(coordinate.mouth.y());
     query.addBindValue(coordinate.leftEye.x());
