@@ -24,6 +24,7 @@ class CPredictor : public QObject
     Q_OBJECT
 public:
     Ptr<RTrees> mp_trees;
+    static const int TYPE_NUM = 6;
     enum SitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
 
 private:

@@ -46,7 +46,6 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
 
     // sit
     connect(this, &MainWindow::updateSitRes, mp_sitLogic, &SitLogic::updateSitRes);
-    connect(this, &MainWindow::updateModel, mp_sitLogic, &SitLogic::updateModel);
     connect(mp_sitLogic, &SitLogic::updateDisp, this, &MainWindow::updateSitDisp);
     connect(mp_sitLogic, &SitLogic::info, this, &MainWindow::info);
 
@@ -258,22 +257,24 @@ void MainWindow::on_startButton_clicked()
 {
     if(ui->startButton->text()=="Start")
     {
-        ui->COMComboBox->setEnabled(false);
+
         QString portName(ui->COMComboBox->currentText());
-        try
-        {
-            if ("" == portName) throw QString("No selected COM.");
-            emit updateModel();
-        }catch (const QString& e)
-        {
-            QMessageBox::information(this, "Model error", e);
-            return;
-        }
+        if ("" == portName)
+            QMessageBox::information(this, "startButtonClicked", "No COM selected.", QMessageBox::Ok);
 
         //定时截屏
         qDebug() << "Start timer";
-        mp_cameraTimer->start(1000);
-        mp_sitProcTimer->start(1000);
+        try {
+            mp_sitLogic->start();
+            mp_faceLogic->start();
+        } catch(const QString &e)
+        {
+            QMessageBox::information(this, "start button clicked", e, QMessageBox::Ok);
+            return ;
+        }
+        mp_cameraTimer->start(4000);
+        mp_sitProcTimer->start(3000);
+        ui->COMComboBox->setEnabled(false);
         ui->startButton->setText("Stop");
     }
     else
@@ -281,6 +282,8 @@ void MainWindow::on_startButton_clicked()
         qDebug() << "Stop timer";
         mp_cameraTimer->stop();
         mp_sitProcTimer->stop();
+        mp_sitLogic->stop();
+        mp_faceLogic->stop();
         ui->COMComboBox->setEnabled(true);
         ui->startButton->setText("Start");
     }

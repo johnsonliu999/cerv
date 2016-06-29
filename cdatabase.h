@@ -36,7 +36,6 @@ struct User;
 class CDatabase
 {
 public:
-    CDatabase();
     CDatabase(const QString connName, const DBParams& params);
     ~CDatabase();
 

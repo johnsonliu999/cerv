@@ -1,11 +1,6 @@
 #include "cdatabase.h"
 #include "MySession.h"
 
-CDatabase::CDatabase()
-{
-
-}
-
 CDatabase::CDatabase(const QString connName, const DBParams &params)
 {
     m_db = QSqlDatabase::addDatabase("QMYSQL", connName);
@@ -54,7 +49,7 @@ void CDatabase::insertUserName(const QString &username)
 QByteArray CDatabase::selectXml()
 {
     QSqlQuery query(m_db);
-    query.prepare("select xml from predictor where user_id=?");
+    query.prepare("select xml from predictor where userid=?");
     query.addBindValue(Session::UserId);
     if (!query.exec())
         throw QString("selectXml:")+query.lastError().text();

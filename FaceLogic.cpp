@@ -5,7 +5,6 @@
 #include <string>
 
 const int RES_NUM = 5; ///< the number of results kept
-const int TYPE_NUM = 5;
 
 /*
 ///
@@ -28,7 +27,7 @@ bool FaceLogic::isInitialized()
 CFaceClassfier::FaceType FaceLogic::getRecentRes()
 {
     int ind = 0;
-    for (int i = 0; i < TYPE_NUM; i++)
+    for (int i = 0; i < CFaceClassfier::TYPE_NUM; i++)
     {
         if ((*mp_statList)[ind] < (*mp_statList)[i])
             ind = i;
@@ -51,7 +50,7 @@ FaceLogic::FaceLogic() :
     mp_reader(new CCameraReader),
     mp_classifier(new CFaceClassfier)
 {
-    for (int i = 0; i < TYPE_NUM; i++)
+    for (int i = 0; i < CFaceClassfier::TYPE_NUM; i++)
         *mp_statList << 0;
 }
 
@@ -85,7 +84,7 @@ void FaceLogic::start()
     } catch(const QString& e)
     {
         mp_reader->closeCamera();
-        qDebug() << "Failed to load face classifying model.";
+        qDebug() << "FaceLogic::start : Failed to load face classifying model.";
         throw e;
     }
 }
@@ -102,14 +101,17 @@ void FaceLogic::stop()
 
 // begin slots
 
+#include <QTime>
 ///
 /// \brief FaceLogic::updateFaceRes
 /// update recent result of classification.
 /// Wait for 'update' to use.
 /// Current update 5 results each time.
+/// 3500 msecs each time.
 ///
 void FaceLogic::updateFaceRes()
 {
+    QTime t1 = QTime::currentTime();
     for (int i = 0; i < RES_NUM; i++)
     {
         Mat frame = mp_reader->getFrame();
@@ -124,6 +126,8 @@ void FaceLogic::updateFaceRes()
         mp_resList->append(res);
         (*mp_statList)[(int)res]++;
     }
+    QTime t2 = QTime::currentTime();
+    qDebug() << "Face time cost :" << t1.msecsTo(t2);
 
     emit updateDisp(Enum2String(getRecentRes()));
 }

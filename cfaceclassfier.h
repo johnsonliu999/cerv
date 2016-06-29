@@ -40,6 +40,7 @@ class CFaceClassfier
 {
 public:
     enum FaceType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
+    static const int TYPE_NUM = 6;
 public:
     CFaceClassfier();
     ~CFaceClassfier();

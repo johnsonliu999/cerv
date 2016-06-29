@@ -201,7 +201,7 @@ const QList< QList<int> > CSerialReader::getTrainData() const
         mp_port->waitForReadyRead(-1);
     }
 
-    qDebug() << "Raw Data" << array.length() << ":" << array.data();
+//    qDebug() << "Raw Data" << array.length() << ":" << array.data();
 
     // 提取完整数据，需要满足以#开头，*结尾，20个数据
     QRegExp rx("(#\\s(\\d{1,4}\\s){20}\\*\r\n)");
@@ -209,7 +209,8 @@ const QList< QList<int> > CSerialReader::getTrainData() const
 
     int pos = 0;
     // rx.indexIn返回的在str中的位置
-    while ((pos = rx.indexIn(QString(array), pos)) != -1)
+    while ( (pos < array.length()) &&
+            ((pos = rx.indexIn(QString(array), pos)) != -1) )
     {
         // 往iList中插如第一个括号匹配的内容
         records << rx.cap(1);

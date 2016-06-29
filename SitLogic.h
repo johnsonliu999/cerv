@@ -30,7 +30,6 @@ private:
 
 public slots:
     void updateSitRes(const QString portName);
-    void updateModel();
 
 signals:
     void updateDisp(const QString text);

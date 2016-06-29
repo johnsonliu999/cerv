@@ -2,7 +2,6 @@
 #include "MySession.h"
 
 const int RES_NUM = 5; ///< the number of results kept by stType
-const int TYPE_NUM = 5;
 ///
 /// \brief SitLogic::SitLogic
 /// initialize the statistic list
@@ -12,7 +11,7 @@ SitLogic::SitLogic() :
     mp_resList(new QList<CPredictor::SitType>),
     mp_predictor(new CPredictor)
 {
-    for (int i = 0; i < TYPE_NUM; i++)
+    for (int i = 0; i < CPredictor::TYPE_NUM; i++)
         *mp_statList << 0;
 }
 
@@ -23,7 +22,7 @@ SitLogic::SitLogic() :
 CPredictor::SitType SitLogic::getRecentRes()
 {
     int ind = 0;
-    for (int i = 0; i < TYPE_NUM; i++)
+    for (int i = 0; i < CPredictor::TYPE_NUM; i++)
     {
         if ((*mp_statList)[ind] < (*mp_statList)[i])
             ind = i;
@@ -86,7 +85,7 @@ void SitLogic::readOnce(const QString& portName)
 ///
 void SitLogic::updateSitRes(const QString portName)
 {
-    qDebug() << "updateSitData called";
+    qDebug() << "updateSitRes called";
 
     QTime t1 = QTime::currentTime();
     try {
@@ -97,20 +96,9 @@ void SitLogic::updateSitRes(const QString portName)
         return;
     }
     QTime t2 = QTime::currentTime();
-    qDebug() << "time cost :" << t1.msecsTo(t2);
+    qDebug() << "Sit time cost :" << t1.msecsTo(t2);
 
     emit updateDisp(Enum2String(getRecentRes()));
-}
-
-
-void SitLogic::updateModel()
-{
-    try {
-        mp_predictor->loadFromDB();
-    } catch(const QString& e)
-    {
-        emit info("updateModel", e);
-    }
 }
 
 ///
@@ -140,4 +128,25 @@ QString SitLogic::Enum2String(CPredictor::SitType sitType)
         return "Unknown";
         break;
     }
+}
+
+void SitLogic::start()
+{
+    for (int i = 0; i < RES_NUM; i++)
+        (*mp_statList)[i] = 0;
+
+    mp_resList->clear();
+
+    try{
+        mp_predictor->loadFromDB();
+    } catch(const QString &e)
+    {
+        qDebug() << "start:failed to load predictor.";
+        throw e;
+    }
+}
+
+void SitLogic::stop()
+{
+
 }

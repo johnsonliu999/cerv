@@ -11,7 +11,7 @@
 const int ATTRIBUTE_PRE_SAMPLE = 20;
 const int NUMBER_OF_TRAINING_SAMPLE_PER_CLASS = 500;
 
-const int SIT_TYPE_NUM = 5;
+const int SIT_TYPE_NUM = 6;
 
 #include "cdatabase.h"
 
@@ -56,8 +56,8 @@ CPredictor::SitType CPredictor::classify(const QList<int> & iPredictDataList)
     mp_trees->predict(iPredictData, iPredictLabel);
     int nPredictLable = static_cast<int>(iPredictLabel.at<float>(0,0));
 
-    qDebug() << "Finished predict";
-    qDebug() << "The result is" << nPredictLable;
+//    qDebug() << "Finished predict";
+//    qDebug() << "The result is" << nPredictLable;
 
     return static_cast<SitType>(nPredictLable);
 }
@@ -182,13 +182,20 @@ void CPredictor::storeTrainData(CPredictor::SitType type, const QList<QList<int>
 ///
 void CPredictor::loadFromDB()
 {
-    mp_db->openDB();
+    try {
+        mp_db->openDB();
+    } catch(const QString &e)
+    {
+        qDebug() << "CPredictor::loadFromDB:Can't open DB";
+        throw e;
+    }
     QByteArray xml;
     try{
         xml = mp_db->selectXml();
     } catch (const QString& e)
     {
         mp_db->closeDB();
+        qDebug() << "CPredictor::loadFromDB():Cannot select xml";
         throw e;
     }
 

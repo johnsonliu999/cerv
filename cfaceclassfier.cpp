@@ -31,7 +31,14 @@ CFaceClassfier::CFaceClassfier() :
 CFaceClassfier::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
 {
     FaceType res;
-    Mat grayFrame = framePreproc(frame);
+    Mat grayFrame;
+    try {
+        grayFrame = framePreproc(frame);
+    } catch (const Exception &e)
+    {
+        qDebug() << "CFaceClassfier::clarrify : frame preprocess failed.";
+        return UNKNOWN;
+    }
 
     if ( (res = clarrifyProfile(grayFrame)) != UNKNOWN) return res;
     else res = clarrifyFace(grayFrame);
@@ -41,7 +48,15 @@ CFaceClassfier::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
 cv::Mat CFaceClassfier::framePreproc(const cv::Mat frame)
 {
     Mat grayFrame;
-    cvtColor(frame, grayFrame, CV_BGR2GRAY);
+    try {
+        cvtColor(frame, grayFrame, CV_BGR2GRAY);
+    } catch(const Exception &e)
+    {
+        qDebug() << "CFaceClassifier::framPreproc : cvtColor exception.\n"
+                    "Maybe due to incomplete frame.";
+        throw e;
+    }
+
     equalizeHist(grayFrame, grayFrame);
 
     return grayFrame;
@@ -168,10 +183,10 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
 void CFaceClassfier::loadModel(const String &parentPath)
 {
     if (!mp_profileClassfier->load(parentPath+PROFILE_FILENAME) |
-            mp_faceClassfier->load(parentPath+FACE_FILENMAE) |
-            mp_eyesClassfier->load(parentPath+EYES_FILENAME) |
-            mp_mouthClassfier->load(parentPath+MOUTH_FILENAME))
-        throw QString("Training file not found.");
+            !mp_faceClassfier->load(parentPath+FACE_FILENMAE) |
+            !mp_eyesClassfier->load(parentPath+EYES_FILENAME) |
+            !mp_mouthClassfier->load(parentPath+MOUTH_FILENAME))
+        throw QString("CFaceClassfier::loadModel : Training file not found.");
     qDebug() << "Loading face training file succeed.";
 }
 
@@ -180,12 +195,20 @@ void CFaceClassfier::loadModel(const String &parentPath)
 #include "MySession.h"
 void CFaceClassfier::loadFromDB()
 {
-    mp_db->openDB();
+    try {
+        mp_db->openDB();
+    } catch (const QString &e)
+    {
+        qDebug() << "CFaceClassifire::loadFromDB:Cannot open DB";
+        throw e;
+    }
+
     try {
         *mp_coordinate = mp_db->selectCoordinate();
     } catch(const QString &e)
     {
         mp_db->closeDB();
+        qDebug() << "CFaceClassifire::loadFromDB::Cannot select coordinate.";
         throw e;
     }
     mp_db->closeDB();
