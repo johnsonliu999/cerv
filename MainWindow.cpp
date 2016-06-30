@@ -6,14 +6,13 @@
 #include <QTime>
 
 //data
-#include "Log.h"
-#include "DAO.h"
 #include "MySession.h"
 //sit
 #include "SitLogic.h"
 //face
 #include "FaceLogic.h"
 #include "collectdialog.h"
+#include "logger.h"
 
 #include <QList>
 #include <QSerialPortInfo>
@@ -54,6 +53,8 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     connect(this, &MainWindow::updateFaceRes, mp_faceLogic, &FaceLogic::updateFaceRes);
     connect(mp_faceLogic, &FaceLogic::updateDisp, this, &MainWindow::updateFaceDisp);
     connect(mp_faceLogic, &FaceLogic::info, this, &MainWindow::info);
+    connect(mp_faceLogic, &FaceLogic::updateFaceDisp, this, &MainWindow::updateCameraDisp);
+
     /* end connection */
 
     mp_sitLogic->moveToThread(mp_sitLogicThd);
@@ -90,6 +91,11 @@ void MainWindow::updateFaceDisp(const QString text)
     ui->faceDisp->setText(text);
 }
 
+void MainWindow::updateCameraDisp(const QImage &img)
+{
+    ui->cameraDisp->setPixmap(QPixmap::fromImage(img));
+}
+
 void MainWindow::info(const QString title, const QString text)
 {
     QMessageBox::information(this, title, text, QMessageBox::Ok);
@@ -103,68 +109,6 @@ void MainWindow::sitTask()
 void MainWindow::cameraTask()
 {
     emit updateFaceRes();
-    /*
-    if(first)
-    {
-        previous =FaceLogic::getRtType();
-        first =false;
-        start_t =QTime::currentTime();
-    }
-    else
-    {
-        //以下为提交报告
-        if(face_duration>=5)
-        {
-            end_t =QTime::currentTime();
-
-            Log log;
-            log.date =QDate::currentDate();
-            log.start_t =start_t;
-            log.end_t =end_t;
-            log.face_type =FaceLogic::getRtType();
-            log.sit_type = mp_sitLogic->getRecentRes();
-            log.user =Session::user;
-
-            try{
-                m_db.openDB();
-                DAO::insert(db, log);
-                m_db.closeDB();
-            } catch (const QString& e)
-            {
-                QMessageBox::information(this, "Error", e, QMessageBox::Ok);
-            }
-        }
-
-        previous =FaceLogic::getRtType();
-
-        start_t =QTime::currentTime();
-    }
-
-    //如果同一姿势超过五次，则按姿势相应处理
-    if(face_duration>=5)
-    {
-        switch(FaceLogic::getRtType())
-        {
-           case Profile:
-              ui->statusBar->showMessage("you are tilting your face too long!", 1000);
-              break;
-
-           case NO_FACE:
-              ui->statusBar->showMessage("you have left the computer...", 1000);
-              shakeFrm();
-           //其他的待会再加
-           case Normal:
-              if(face_duration>=60)
-              {
-                ui->statusBar->showMessage("hold on,you have good posture for a minute!",2000);
-              }
-                break;
-           default:
-                break;
-        }
-    }
-    ui->plainTextEdit->setPlainText(FaceLogic::fetchJudgedMessage());
-    */
 }
 
 void MainWindow::on_MainWindow_destroyed()
@@ -173,23 +117,8 @@ void MainWindow::on_MainWindow_destroyed()
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
-#if NO
-    try{
-        mp_db->openDB();
-        QList<Log> logs =DAO::selectCoordinate(db, const_cast<QDate&>(date),Session::user);
-        mp_db->closeDB();
-        ReportWindow* w =new ReportWindow(logs,this);
-        w->show();
-    }catch (const QString& e)
-    {
-        QMessageBox::information(this, "Error", e, QMessageBox::Ok);
-    }
-#endif
-}
-
-void MainWindow::on_actionTrain_triggered()
-{
-
+    ReportWindow* w = new ReportWindow(this);
+    w->show();
 }
 
 void MainWindow::on_connectButton_clicked()
@@ -237,10 +166,17 @@ void MainWindow::on_startButton_clicked()
         mp_sitProcTimer->start(3000);
         ui->COMComboBox->setEnabled(false);
         ui->startButton->setText("Stop");
+
+        // logger
+        mp_logger = new Logger(mp_faceLogic, mp_sitLogic);
+        connect(this, &MainWindow::startLog, mp_logger, &Logger::start);
+        connect(this, &MainWindow::stopLog, mp_logger, &Logger::stop);
+
+        emit startLog();
     }
     else
     {
-        qDebug() << "Stop timer";
+        emit stopLog();
         mp_cameraTimer->stop();
         mp_sitProcTimer->stop();
         mp_sitLogic->stop();

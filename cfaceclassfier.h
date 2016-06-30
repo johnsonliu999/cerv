@@ -17,7 +17,6 @@ namespace Face {
     enum FaceType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
 }
 
-
 struct OrgansCoordinate
 {
     QPoint mouth;
@@ -47,7 +46,7 @@ public:
     CFaceClassfier();
     ~CFaceClassfier();
 
-    Face::FaceType clarrify(const cv::Mat frame);
+    Face::FaceType clarrify(const Mat &frame, QList<QPoint> &points);
 
     void loadModel(const cv::String &parentPath);
     void loadFromDB();
@@ -58,8 +57,8 @@ private:
     cv::Rect getMaxRect(const std::vector<cv::Rect> &rects);
     int calcDist(const QPoint &p1, const QPoint &p2);
     cv::Mat framePreproc(const cv::Mat frame);
-    Face::FaceType clarrifyProfile(const cv::Mat grayFrame);
-    Face::FaceType clarrifyFace(const cv::Mat grayFrame);
+    Face::FaceType clarrifyProfile(const cv::Mat grayFrame, QList<QPoint> &points);
+    Face::FaceType clarrifyFace(const cv::Mat grayFrame, QList<QPoint> &points);
     QPoint calcAverage(const QList<QPoint> &pointList);
 
 //    Face::FaceType clarrifyByOrgans(const QPoint &leftEye, const QPoint &rightEye, const QPoint &mouth);

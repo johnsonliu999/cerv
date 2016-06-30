@@ -85,9 +85,9 @@ void SitLogic::readOnce(const QString& portName)
 ///
 void SitLogic::updateSitRes(const QString portName)
 {
-    qDebug() << "updateSitRes called";
+//    qDebug() << "updateSitRes called";
 
-    QTime t1 = QTime::currentTime();
+//    QTime t1 = QTime::currentTime();
     try {
         readOnce(portName);
     } catch (const QString& e)
@@ -95,8 +95,8 @@ void SitLogic::updateSitRes(const QString portName)
         emit info("readOnce", e);
         return;
     }
-    QTime t2 = QTime::currentTime();
-    qDebug() << "Sit time cost :" << t1.msecsTo(t2);
+//    QTime t2 = QTime::currentTime();
+//    qDebug() << "Sit time cost :" << t1.msecsTo(t2);
 
     emit updateDisp(Enum2String(getRecentRes()));
 }

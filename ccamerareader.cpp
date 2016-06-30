@@ -79,7 +79,7 @@ void CCameraReader::timeOut()
         return ;
     }
 
-    qDebug() << "emit updateCameraDisp().";
+//    qDebug() << "emit updateCameraDisp().";
     emit updateCameraDisp(image);
 }
 

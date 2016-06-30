@@ -1,4 +1,3 @@
-#if NO
 #ifndef REPORTWINDOW_H
 #define REPORTWINDOW_H
 
@@ -15,16 +14,14 @@ class ReportWindow : public QMainWindow
 
 public:
 
-    explicit ReportWindow(QList<Log>& reportSet,QWidget *parent = 0);
+    explicit ReportWindow(QWidget *parent = 0);
 
     ~ReportWindow();
 
 private:
     Ui::ReportWindow *ui;
 
-
-    void setTable(QList<Log> &);
+    void setupTable();
 };
 
 #endif // REPORTWINDOW_H
-#endif

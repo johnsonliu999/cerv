@@ -5,7 +5,9 @@
 
 #include "FaceLogic.h"
 #include "SitLogic.h"
-#include "cdatabase.h"
+
+class CDatabase;
+class QTread;
 
 struct Log
 {
@@ -25,11 +27,14 @@ public:
                     QObject *parent = 0);
     ~Logger();
 
+
+
 private:
-    FaceLogic *mp_faceLogic;
-    SitLogic *mp_sitLogic;
+    const FaceLogic *mp_faceLogic;
+    const SitLogic *mp_sitLogic;
     CDatabase *mp_db;
     QTimer *mp_timer;
+    QThread *mp_thread;
 
 signals:
     void getRecentFaceType(Face::FaceType &faceType);

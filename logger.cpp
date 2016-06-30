@@ -7,24 +7,31 @@ Logger::Logger(const FaceLogic *p_faceLogic,
     mp_sitLogic(p_sitLogic),
     mp_db(new CDatabase("logger", DBParams("MYSQL", "localhost", "neck", "root", "qq452977491", 3306)))
 {
-    connect(this, &Logger::getRecentFace::FaceType, mp_faceLogic, &FaceLogic::getRecentType, Qt::BlockingQueuedConnection);
-    connect(this, &Logger::getRecentSit::Sit::SitType, mp_sitLogic, &SitLogic::getRecentType, Qt::BlockingQueuedConnection);
+    connect(this, &Logger::getRecentFaceType, mp_faceLogic, &FaceLogic::getRecentType, Qt::BlockingQueuedConnection);
+    connect(this, &Logger::getRecentSitType, mp_sitLogic, &SitLogic::getRecentType, Qt::BlockingQueuedConnection);
+}
+
+Logger::~Logger()
+{
+
 }
 
 void Logger::log()
 {
-    Face::FaceType Face::FaceType;
-    Sit::SitType Sit::SitType;
-    emit getRecentFace::FaceType(Face::FaceType);
-    emit getRecentSit::Sit::SitType(Sit::SitType);
+    qDebug() << "logging";
+    Face::FaceType faceType;
+    Sit::SitType sitType;
+    emit getRecentFaceType(faceType);
+    emit getRecentSitType(sitType);
     Log log;
-    log.Face::FaceType = Face::FaceType;
-    log.Sit::SitType = Sit::SitType;
+    log.faceType = faceType;
+    log.sitType = sitType;
     mp_db->insertLog(log);
 }
 
 void Logger::start()
 {
+    qDebug() << "Start Logger";
     try {
         mp_db->openDB();
     } catch(const QString &e)
@@ -33,6 +40,10 @@ void Logger::start()
         throw e;
     }
 
+    mp_thread = new QThread;
+    this->moveToThread(mp_thread);
+    mp_thread->start();
+
     mp_timer = new QTimer();
     connect(mp_timer, &QTimer::timeout, this, &Logger::log);
     mp_timer->start(20*1000);
@@ -40,8 +51,16 @@ void Logger::start()
 
 void Logger::stop()
 {
-    mp_db->close();
-    mp_timer->stop();
-    disconnect(mp_timer, &QTimer::timeout, this, &Logger::log);
-    mp_timer->~QTimer();
+    qDebug() << "Stop logger";
+    mp_db->closeDB();
+    if (mp_thread)
+    {
+        mp_timer->stop();
+        disconnect(mp_timer, &QTimer::timeout, this, &Logger::log);
+        mp_timer->~QTimer();
+
+        mp_thread->quit();
+        mp_thread->wait();
+        mp_thread->~QThread();
+    }
 }

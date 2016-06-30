@@ -12,8 +12,7 @@
 #include <QString>
 #include <QDebug>
 #include <QTime>
-
-
+#include <QList>
 
 using namespace cv;
 
@@ -37,7 +36,13 @@ CFaceClassfier::~CFaceClassfier()
 
 }
 
-Face::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
+///
+/// \brief CFaceClassfier::clarrify
+/// will circle out the position
+/// \param frame
+/// \return
+///
+Face::FaceType CFaceClassfier::clarrify(const cv::Mat &frame, QList<QPoint> &points)
 {
     Face::FaceType res;
     Mat grayFrame;
@@ -49,8 +54,8 @@ Face::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
         return Face::UNKNOWN;
     }
 
-    if ( (res = clarrifyProfile(grayFrame)) != Face::UNKNOWN) return res;
-    else res = clarrifyFace(grayFrame);
+    if ( (res = clarrifyProfile(grayFrame, points)) != Face::UNKNOWN) return res;
+    else res = clarrifyFace(grayFrame, points);
     return res;
 }
 
@@ -78,9 +83,10 @@ cv::Mat CFaceClassfier::framePreproc(const cv::Mat frame)
 /// * First tell right or left, because it's more convincing.
 ///
 /// \param grayFrame
+/// \param points insert the center to the first point
 /// \return
 ///
-Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
+Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame, QList<QPoint> &points)
 {
     std::vector<Rect> profiles;
     Rect profileRec;
@@ -90,7 +96,9 @@ Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
     {
         // find max area profile as the main face
         profileRec = getMaxRect(profiles);
-
+        QPoint center(profileRec.x + profileRec.width * 0.5,
+                      profileRec.y + profileRec.height * 0.5);
+        points << center;
         /* begin classification */
         res = Face::NORMAL;
 
@@ -101,12 +109,8 @@ Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
         else if (maxArea < framArea*0.1) res = Face::BACKWARD;
 
         // left or right
-        Point center;
-        center.x = profileRec.x + profileRec.width * 0.5;
-        center.y = profileRec.y + profileRec.height * 0.5;
-
-        if (center.x < grayFrame.size().width*0.25) res = Face::LEFTWARD;
-        else if (center.x > grayFrame.size().width*0.75) res = Face::RIGHTWARD;
+        if (center.x() < grayFrame.size().width*0.25) res = Face::LEFTWARD;
+        else if (center.x() > grayFrame.size().width*0.75) res = Face::RIGHTWARD;
     }
 
     return res;
@@ -118,12 +122,11 @@ Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
 /// \param grayFrame
 /// \return
 ///
-Face::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
+Face::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame, QList<QPoint> &points)
 {
     std::vector<Rect> faces;
     Rect faceRect;
     Face::FaceType res = Face::UNKNOWN;
-
     mp_faceClassfier->detectMultiScale(grayFrame, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
     if (faces.size())
     {
@@ -148,8 +151,20 @@ Face::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
         if (eyes.size() == 2)
         {
             Rect leftEye, rightEye;
-            leftEye = eyes[0];
-            rightEye = eyes[1];
+            if (eyes[0].x > eyes[1].x)
+            {
+                leftEye = eyes[0];
+                rightEye = eyes[1];
+            }
+            else
+            {
+                leftEye = eyes[1];
+                rightEye = eyes[0];
+            }
+
+            QPoint leftEyeCenter(leftEye.x+leftEye.width/2, leftEye.y+leftEye.height/2);
+            QPoint rightEyeCenter(rightEye.x+rightEye.width/2, rightEye.y+rightEye.height/2);
+            points << leftEyeCenter << rightEyeCenter;
 
             // mouth
             r = Rect(faceRect.x+faceRect.width/4,
@@ -162,10 +177,8 @@ Face::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
             if (mouths.size())
             {
                 Rect mouth = getMaxRect(mouths);
-
-                QPoint leftEyeCenter(leftEye.x+leftEye.width/2, leftEye.y+leftEye.height/2);
-                QPoint rightEyeCenter(rightEye.x+rightEye.width/2, rightEye.y+rightEye.height/2);
                 QPoint mouthCenter(mouth.x+mouth.width/2, mouth.y+mouth.height/2);
+                points << mouthCenter;
 
                 int totalDist = calcDist(leftEyeCenter, mp_coordinate->leftEye) +
                                 calcDist(rightEyeCenter, mp_coordinate->rightEye) +
