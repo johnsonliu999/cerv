@@ -46,7 +46,7 @@ CPredictor::~CPredictor()
  * @param pnPredictData：由各个特征组成的数组，NUMBER_OF_TRAINING_SAMPLE_PER_CLASS项
  * @return ：坐姿的枚举类型
  */
-CPredictor::SitType CPredictor::classify(const QList<int> & iPredictDataList)
+Sit::SitType CPredictor::classify(const QList<int> & iPredictDataList)
 {
     Mat iPredictData = Mat(1, ATTRIBUTE_PRE_SAMPLE, CV_32FC1);
     Mat iPredictLabel = Mat(1,1, CV_32SC1);
@@ -59,7 +59,7 @@ CPredictor::SitType CPredictor::classify(const QList<int> & iPredictDataList)
 //    qDebug() << "Finished predict";
 //    qDebug() << "The result is" << nPredictLable;
 
-    return static_cast<SitType>(nPredictLable);
+    return static_cast<Sit::SitType>(nPredictLable);
 }
 
 
@@ -120,12 +120,12 @@ void CPredictor::__BuildRTrees(Mat &iData, Mat &iLabel)
  *
  * @param type
  */
-void CPredictor::collectCertainType(const CSerialReader& reader,SitType type)
+void CPredictor::collectCertainType(const CSerialReader& reader,Sit::SitType type)
 {
     QList< QList<int> > recList; // 每个类型的记录条数，用来判断是否达标
     int total = 0;
 
-    qDebug() << "Now collect" <<" SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, please keep";
+    qDebug() << "Now collect" <<" Sit::SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, please keep";
     // since the matrix start with 0
     while (total + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
@@ -149,7 +149,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,SitType type)
         QThread::sleep(5);
     }
 
-    qDebug() << "finished collect" <<" SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, congratulation";
+    qDebug() << "finished collect" <<" Sit::SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, congratulation";
 
 }
 
@@ -160,7 +160,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,SitType type)
 /// \param type
 /// \param data
 ///
-void CPredictor::storeTrainData(CPredictor::SitType type, const QList<QList<int> > & data)
+void CPredictor::storeTrainData(Sit::SitType type, const QList<QList<int> > & data)
 {
     for (int j = 0; j < data.size(); j++)
     {
@@ -252,8 +252,8 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
 
         for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
-            emit information("Collect information", "Going to collect " + SitLogic::Enum2String((CPredictor::SitType)i) + " data");
-            collectCertainType(reader, (SitType)i);
+            emit information("Collect information", "Going to collect " + SitLogic::Enum2String((Sit::SitType)i) + " data");
+            collectCertainType(reader, (Sit::SitType)i);
         }
 
         emit information("Collect information", "Finished collect");

@@ -8,7 +8,7 @@ const int RES_NUM = 5; ///< the number of results kept by stType
 ///
 SitLogic::SitLogic() :
     mp_statList(new QList<int>),
-    mp_resList(new QList<CPredictor::SitType>),
+    mp_resList(new QList<Sit::SitType>),
     mp_predictor(new CPredictor)
 {
     for (int i = 0; i < CPredictor::TYPE_NUM; i++)
@@ -16,10 +16,10 @@ SitLogic::SitLogic() :
 }
 
 ///
-/// \brief SitLogic::getSitType return list of recent sit type.
+/// \brief SitLogic::getSit::Sit::SitType return list of recent sit type.
 /// \return List of recent seat type.
 ///
-CPredictor::SitType SitLogic::getRecentRes()
+Sit::SitType SitLogic::getRecentRes()
 {
     int ind = 0;
     for (int i = 0; i < CPredictor::TYPE_NUM; i++)
@@ -28,7 +28,7 @@ CPredictor::SitType SitLogic::getRecentRes()
             ind = i;
     }
 
-    return CPredictor::SitType(ind);
+    return Sit::SitType(ind);
 }
 
 ///
@@ -68,7 +68,7 @@ void SitLogic::readOnce(const QString& portName)
             (*mp_statList)[(int)(*mp_resList)[0]]--;
             mp_resList->removeFirst();
         }
-        CPredictor::SitType res = mp_predictor->classify(records[i]);
+        Sit::SitType res = mp_predictor->classify(records[i]);
         mp_resList->append(res);
         (*mp_statList)[(int)res]++;
     }
@@ -101,30 +101,35 @@ void SitLogic::updateSitRes(const QString portName)
     emit updateDisp(Enum2String(getRecentRes()));
 }
 
+void SitLogic::getRecentType(Sit::SitType &type)
+{
+    type = getRecentRes();
+}
+
 ///
 /// \brief SitLogic::fetchJudgedMessage provide sit type in string format.
-/// \param sitType
+/// \param Sit::SitType
 /// \return Seat type in string format.
 ///
-QString SitLogic::Enum2String(CPredictor::SitType sitType)
+QString SitLogic::Enum2String(Sit::SitType sitType)
 {
     switch (sitType) {
-    case CPredictor::NORMAL:
+    case Sit::NORMAL:
         return "Normal";
         break;
-    case CPredictor::LEFTWARD:
+    case Sit::LEFTWARD:
         return "Leftward";
         break;
-    case CPredictor::RIGHTWARD:
+    case Sit::RIGHTWARD:
         return "Rightward";
         break;
-    case CPredictor::BACKWARD:
+    case Sit::BACKWARD:
         return "Backward";
         break;
-    case CPredictor::FORWARD:
+    case Sit::FORWARD:
         return "Forward";
         break;
-    case CPredictor::UNKNOWN:
+    case Sit::UNKNOWN:
         return "Unknown";
         break;
     }

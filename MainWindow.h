@@ -47,7 +47,6 @@ private slots:
     void on_startButton_clicked();
 
     void on_trainFace_triggered();
-
     void on_trainSit_triggered();
 
 private:

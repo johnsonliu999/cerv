@@ -2,8 +2,9 @@
 #define CDATABASE_H
 
 #include <QtSql>
-#include "cfaceclassfier.h"
 
+struct Log;
+struct OrgansCoordinate;
 
 struct DBParams
 {
@@ -28,8 +29,6 @@ struct DBParams
     }
 };
 
-struct User;
-
 ///
 /// \brief The CDatabase class provide access to Mysql database.
 ///
@@ -53,7 +52,8 @@ public:
     void insertCoordinate(const OrgansCoordinate &coordinate);
     void updateCoordinate(const OrgansCoordinate &coordinate);
 
-
+    QList<Log> selectLog(int limit = 10);
+    void insertLog(const Log &log);
 
 
 

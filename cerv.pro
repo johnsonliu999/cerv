@@ -60,7 +60,8 @@ HEADERS += \
     connectdialog.h \
     ccamerareader.h \
     cfaceclassfier.h \
-    trainfacewidget.h
+    trainfacewidget.h \
+    logger.h
 
 SOURCES += \
     capture.cpp \
@@ -80,11 +81,17 @@ SOURCES += \
     connectdialog.cpp \
     ccamerareader.cpp \
     cfaceclassfier.cpp \
-    trainfacewidget.cpp
+    trainfacewidget.cpp \
+    logger.cpp
 
 
 DISTFILES += \
     README.md
+
+RC_ICONS += logo48.ico
+
+
+
 
 
 

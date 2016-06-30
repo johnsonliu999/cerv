@@ -13,8 +13,10 @@ using namespace cv;
 using namespace cv::ml;
 
 #include "cdatabase.h"
-
-class CSerialReader;
+#include "cserialreader.h"
+namespace Sit{
+    enum SitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
+}
 
 ///
 /// \brief The CPredictor class provide method to collect, train, store and predict.
@@ -25,7 +27,6 @@ class CPredictor : public QObject
 public:
     Ptr<RTrees> mp_trees;
     static const int TYPE_NUM = 6;
-    enum SitType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
 
 private:
     Mat  iData;
@@ -36,13 +37,13 @@ public:
     CPredictor();
     ~CPredictor();
 
-    SitType classify(const QList<int> & iPredictData);
+    Sit::SitType classify(const QList<int> & iPredictData);
     void loadFromDB();
     void save2DB(bool b_exist);
     void train();
     bool isTrained();
-    void collectCertainType(const CSerialReader&, SitType type);
-    void storeTrainData(SitType type,const QList<QList<int>>& data);
+    void collectCertainType(const CSerialReader&, Sit::SitType type);
+    void storeTrainData(Sit::SitType type,const QList<QList<int>>& data);
 
 public slots:
     void trainData(QString portName, const bool b_replace);

@@ -37,19 +37,19 @@ CFaceClassfier::~CFaceClassfier()
 
 }
 
-CFaceClassfier::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
+Face::FaceType CFaceClassfier::clarrify(const cv::Mat frame)
 {
-    FaceType res;
+    Face::FaceType res;
     Mat grayFrame;
     try {
         grayFrame = framePreproc(frame);
     } catch (const Exception &e)
     {
         qDebug() << "CFaceClassfier::clarrify : frame preprocess failed.";
-        return UNKNOWN;
+        return Face::UNKNOWN;
     }
 
-    if ( (res = clarrifyProfile(grayFrame)) != UNKNOWN) return res;
+    if ( (res = clarrifyProfile(grayFrame)) != Face::UNKNOWN) return res;
     else res = clarrifyFace(grayFrame);
     return res;
 }
@@ -80,11 +80,11 @@ cv::Mat CFaceClassfier::framePreproc(const cv::Mat frame)
 /// \param grayFrame
 /// \return
 ///
-CFaceClassfier::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
+Face::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame)
 {
     std::vector<Rect> profiles;
     Rect profileRec;
-    FaceType res = UNKNOWN;
+    Face::FaceType res = Face::UNKNOWN;
     mp_profileClassfier->detectMultiScale(grayFrame, profiles, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
     if(profiles.size() > 0)
     {
@@ -92,21 +92,21 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame
         profileRec = getMaxRect(profiles);
 
         /* begin classification */
-        res = NORMAL;
+        res = Face::NORMAL;
 
         int maxArea = profileRec.width*profileRec.height;
         // forward or backward
         int framArea = grayFrame.size().width * grayFrame.size().height;
-        if (maxArea > framArea*0.5) res = FORWARD;
-        else if (maxArea < framArea*0.1) res = BACKWARD;
+        if (maxArea > framArea*0.5) res = Face::FORWARD;
+        else if (maxArea < framArea*0.1) res = Face::BACKWARD;
 
         // left or right
         Point center;
         center.x = profileRec.x + profileRec.width * 0.5;
         center.y = profileRec.y + profileRec.height * 0.5;
 
-        if (center.x < grayFrame.size().width*0.25) res = LEFTWARD;
-        else if (center.x > grayFrame.size().width*0.75) res = RIGHTWARD;
+        if (center.x < grayFrame.size().width*0.25) res = Face::LEFTWARD;
+        else if (center.x > grayFrame.size().width*0.75) res = Face::RIGHTWARD;
     }
 
     return res;
@@ -118,11 +118,11 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyProfile(const cv::Mat grayFrame
 /// \param grayFrame
 /// \return
 ///
-CFaceClassfier::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
+Face::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
 {
     std::vector<Rect> faces;
     Rect faceRect;
-    FaceType res = UNKNOWN;
+    Face::FaceType res = Face::UNKNOWN;
 
     mp_faceClassfier->detectMultiScale(grayFrame, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30,30));
     if (faces.size())
@@ -130,13 +130,13 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
         faceRect = getMaxRect(faces);
 
         /* begin classification */
-        res = NORMAL;
+        res = Face::NORMAL;
 
         int maxArea = faceRect.width*faceRect.height;
         // forward or backward
         int framArea = grayFrame.size().width * grayFrame.size().height;
-        if (maxArea > framArea*0.5) res = FORWARD;
-        else if (maxArea < framArea*0.1) res = BACKWARD;
+        if (maxArea > framArea*0.5) res = Face::FORWARD;
+        else if (maxArea < framArea*0.1) res = Face::BACKWARD;
 
         // left or right
         // eyes
@@ -173,8 +173,8 @@ CFaceClassfier::FaceType CFaceClassfier::clarrifyFace(const cv::Mat grayFrame)
 
                 if (totalDist > 24000)
                 {
-                    if (mouthCenter.x()-mp_coordinate->mouth.x()>0) res = LEFTWARD;
-                    else res = RIGHTWARD;
+                    if (mouthCenter.x()-mp_coordinate->mouth.x()>0) res = Face::LEFTWARD;
+                    else res = Face::RIGHTWARD;
                 }
             }
         }

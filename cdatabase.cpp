@@ -1,5 +1,7 @@
 #include "cdatabase.h"
 #include "MySession.h"
+#include "cfaceclassfier.h"
+#include "logger.h"
 
 CDatabase::CDatabase(const QString connName, const DBParams &params)
 {
@@ -144,6 +146,45 @@ void CDatabase::updateCoordinate(const OrgansCoordinate &coordinate)
         throw QString("updateCoordinate:")+query.lastError().text();
     qDebug() << "Update coordinate succeed.";
     qDebug() << query.numRowsAffected() << "rows affected";
+}
+
+QList<Log> CDatabase::selectLog(int limit)
+{
+    QSqlQuery query(m_db);
+    query.prepare("select * from log where user_id=? order by id desc limit "+QString::number(limit));
+    query.addBindValue(Session::UserId);
+    if (!query.exec())
+        throw QString("selectLog : ")+query.lastError().text();
+    if (!query.size())
+        throw QString("selectLog : No record.");
+
+    QList<Log> list;
+    Log log;
+    while (query.next())
+    {
+        QStringList temp = query.value("timestamp").toString().split(' ');
+        log.date = QDate::fromString(temp[0], "yyyy-MM-dd");
+        log.time = QTime::fromString(temp[1], "hh:mm:ss");
+        log.faceType = (Face::FaceType)query.value("Face::FaceType").toInt();
+        log.sitType = (Sit::SitType)query.value("Sit::SitType").toInt();
+        list << log;
+        //        query.value("type").toInt();
+    }
+    return list;
+}
+
+void CDatabase::insertLog(const Log &log)
+{
+    QSqlQuery query(m_db);
+    query.prepare("insert into log(Face::FaceType, Sit::SitType, user_id) "
+                  "values(?,?,?)");
+    query.addBindValue((int)log.faceType);
+    query.addBindValue((int)log.faceType);
+    query.addBindValue(Session::UserId);
+    if (!query.exec())
+        throw QString("insertLog : ")+query.lastError().text();
+    qDebug() << "insert log succeed.";
+    qDebug() << query.numRowsAffected() << "rows affected.";
 }
 
 ///

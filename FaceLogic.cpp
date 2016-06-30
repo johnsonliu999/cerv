@@ -24,7 +24,7 @@ bool FaceLogic::isInitialized()
 ///
 /// \return
 ///
-CFaceClassfier::FaceType FaceLogic::getRecentRes()
+Face::FaceType FaceLogic::getRecentRes()
 {
     int ind = 0;
     for (int i = 0; i < CFaceClassfier::TYPE_NUM; i++)
@@ -33,7 +33,7 @@ CFaceClassfier::FaceType FaceLogic::getRecentRes()
             ind = i;
     }
 
-    return CFaceClassfier::FaceType(ind);
+    return Face::FaceType(ind);
 }
 
 
@@ -45,7 +45,7 @@ CFaceClassfier::FaceType FaceLogic::getRecentRes()
 /// \return success or not.
 ///
 FaceLogic::FaceLogic() :
-    mp_resList(new QList<CFaceClassfier::FaceType>),
+    mp_resList(new QList<Face::FaceType>),
     mp_statList(new QList<int>),
     mp_reader(new CCameraReader),
     mp_classifier(new CFaceClassfier)
@@ -116,7 +116,7 @@ void FaceLogic::updateFaceRes()
     for (int i = 0; i < RES_NUM; i++)
     {
         Mat frame = mp_reader->getFrame();
-        CFaceClassfier::FaceType res = mp_classifier->clarrify(frame);
+        Face::FaceType res = mp_classifier->clarrify(frame);
 
         // update statistics
         if (mp_resList->size() >= RES_NUM)
@@ -131,6 +131,11 @@ void FaceLogic::updateFaceRes()
     qDebug() << "Face time cost :" << t1.msecsTo(t2);
 
     emit updateDisp(Enum2String(getRecentRes()));
+}
+
+void FaceLogic::getRecentType(Face::FaceType &type)
+{
+    type = getRecentRes();
 }
 
 #if NO
@@ -277,29 +282,29 @@ void FaceLogic::judgeFacePosture(const Point& lfeye,const Point& rteye,const Poi
 
 ///
 /// \brief FaceLogic::fetchJudgedMessage provide string format information.
-/// \param faceType
+/// \param Face::FaceType
 /// \return Type in string format.
 ///
-QString FaceLogic::Enum2String(const CFaceClassfier::FaceType &faceType)
+QString FaceLogic::Enum2String(const Face::FaceType &faceType)
 {
     switch (faceType)
 	{
-        case CFaceClassfier::NORMAL:
+        case Face::NORMAL:
             return "Normal";
 			break;
-        case CFaceClassfier::BACKWARD:
+        case Face::BACKWARD:
             return "Backward";
 			break;
-        case CFaceClassfier::FORWARD:
+        case Face::FORWARD:
             return "Forward";
 			break;
-        case CFaceClassfier::LEFTWARD:
+        case Face::LEFTWARD:
             return "Leftward";
 			break;
-        case CFaceClassfier::RIGHTWARD:
+        case Face::RIGHTWARD:
             return "Rightward";
 			break;
-        case CFaceClassfier::UNKNOWN:
+        case Face::UNKNOWN:
             return "Unknown";
 			break;
     }

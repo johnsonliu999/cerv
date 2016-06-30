@@ -10,11 +10,12 @@ using namespace cv;
 #include <QObject>
 #include <QPoint>
 
+#include "ccamerareader.h"
+#include "cdatabase.h"
 
-class CCameraReader;
-class CDatabase;
-struct User;
-
+namespace Face {
+    enum FaceType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
+}
 
 
 struct OrgansCoordinate
@@ -41,13 +42,12 @@ class CFaceClassfier : public QObject
 {
     Q_OBJECT
 public:
-    enum FaceType {NORMAL=0, BACKWARD, FORWARD, RIGHTWARD, LEFTWARD, UNKNOWN};
     static const int TYPE_NUM = 6;
 public:
     CFaceClassfier();
     ~CFaceClassfier();
 
-    FaceType clarrify(const cv::Mat frame);
+    Face::FaceType clarrify(const cv::Mat frame);
 
     void loadModel(const cv::String &parentPath);
     void loadFromDB();
@@ -58,11 +58,11 @@ private:
     cv::Rect getMaxRect(const std::vector<cv::Rect> &rects);
     int calcDist(const QPoint &p1, const QPoint &p2);
     cv::Mat framePreproc(const cv::Mat frame);
-    FaceType clarrifyProfile(const cv::Mat grayFrame);
-    FaceType clarrifyFace(const cv::Mat grayFrame);
+    Face::FaceType clarrifyProfile(const cv::Mat grayFrame);
+    Face::FaceType clarrifyFace(const cv::Mat grayFrame);
     QPoint calcAverage(const QList<QPoint> &pointList);
 
-//    FaceType clarrifyByOrgans(const QPoint &leftEye, const QPoint &rightEye, const QPoint &mouth);
+//    Face::FaceType clarrifyByOrgans(const QPoint &leftEye, const QPoint &rightEye, const QPoint &mouth);
 
 private:
     CascadeClassifier* mp_faceClassfier;
@@ -71,7 +71,7 @@ private:
     CascadeClassifier* mp_profileClassfier;
 
     OrgansCoordinate* mp_coordinate;
-    CDatabase* mp_db;
+    CDatabase *mp_db;
 
 signals:
     void info(const QString title, const QString text);
