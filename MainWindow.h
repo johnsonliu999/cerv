@@ -56,6 +56,8 @@ private slots:
 
     void on_actionUser_Id_triggered();
 
+    void on_actionBar_Chart_triggered();
+
 private:
     Ui::MainWindow *ui;
 

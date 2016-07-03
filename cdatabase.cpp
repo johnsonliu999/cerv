@@ -198,6 +198,33 @@ QList<Log> CDatabase::selectLog(const QDate &date, const int limit)
     return list;
 }
 
+QList<Log> CDatabase::selectLog(const QDate &from, const QDate &to)
+{
+    QSqlQuery query(m_db);
+    query.prepare("select * from log where user_id=? and "
+                  "timestamp between '"
+                  + from.toString("yyyy-MM-dd")+"' and '"
+                  + to.toString("yyyy-MM-dd") + "'");
+    query.addBindValue(Session::UserId);
+    if (!query.exec())
+        throw QString("selectLog : ")+query.lastError().text();
+
+    qDebug() << query.lastQuery();
+    QList<Log> list;
+    Log log;
+    while (query.next())
+    {
+        QStringList temp = query.value("timestamp").toString().split('T');
+        log.date = QDate::fromString(temp.at(0), "yyyy-MM-dd");
+        log.time = QTime::fromString(temp.at(1), "hh:mm:ss");
+        log.faceType = (Face::FaceType)query.value("face_type").toInt();
+        log.sitType = (Sit::SitType)query.value("sit_type").toInt();
+        list << log;
+        //        query.value("type").toInt();
+    }
+    return list;
+}
+
 void CDatabase::insertLog(const Log &log)
 {
     QSqlQuery query(m_db);

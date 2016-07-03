@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql serialport
+QT       += core gui sql serialport printsupport
 
 #CONFIG += c++11
 
@@ -32,7 +32,8 @@ FORMS += \
     registerdialog.ui \
     ReportWindow.ui \
     connectdialog.ui \
-    trainfacewidget.ui
+    trainfacewidget.ui \
+    barchartwindow.ui
 
 INCLUDEPATH += D:/Download/OpenCV/opencv/build/include \
 D:/Download/OpenCV/opencv/build/include/opencv \
@@ -62,7 +63,9 @@ HEADERS += \
     cfaceclassfier.h \
     trainfacewidget.h \
     logger.h \
-    loadder.h
+    loadder.h \
+    qcustomplot.h \
+    barchartwindow.h
 
 SOURCES += \
     capture.cpp \
@@ -84,7 +87,9 @@ SOURCES += \
     cfaceclassfier.cpp \
     trainfacewidget.cpp \
     logger.cpp \
-    loadder.cpp
+    loadder.cpp \
+    qcustomplot.cpp \
+    barchartwindow.cpp
 
 
 DISTFILES += \

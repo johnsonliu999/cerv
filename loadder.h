@@ -17,11 +17,14 @@ private:
 
 signals:
     void updateLogTable(const QList<Log> &logList);
-    void finishedLoad();
+    void updateBarChart(const QVector<double> &freqs);
+    void finishLoad();
     void info(const QString &title, const QString &text);
+    void infoBarChart(const QString &title, const QString &text);
 
 public slots:
     void loadLog(const QDate &date);
+    void loadLog(const QDate &from, const QDate &to);
 };
 
 #endif // LOADDER_H

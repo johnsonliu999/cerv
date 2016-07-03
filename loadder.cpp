@@ -39,7 +39,7 @@ void Loadder::loadLog(const QDate &date)
         mp_thread->quit();
         mp_thread->wait();
         emit info("Loadder::loadLog", e);
-        emit finishedLoad();
+        emit finishLoad();
         return ;
     }
 
@@ -47,5 +47,48 @@ void Loadder::loadLog(const QDate &date)
     mp_thread->quit();
     mp_thread->wait();
     emit updateLogTable(logList);
-    emit finishedLoad();
+    emit finishLoad();
+}
+
+void Loadder::loadLog(const QDate &from, const QDate &to)
+{
+    qDebug() << "called loadLog form to";
+    CDatabase db("loadder");
+    try {
+        db.openDB();
+    } catch (const QString &e)
+    {
+        qDebug() << "Loadder::loadLog():cannot open DB.";
+        qDebug() << e;
+    }
+    QList<Log> logList;
+    try{
+        logList = db.selectLog(from, to);
+    } catch (const QString &e)
+    {
+        qDebug() << "Loadder::loadLog():cannot select log";
+        db.closeDB();
+        mp_thread->quit();
+        mp_thread->wait();
+        emit infoBarChart("Loadder::loadLog", e);
+        return ;
+    }
+
+    db.closeDB();
+
+    qDebug() << "Size:" << logList.size();
+
+    QVector<double> freqs(6);
+    for (int i = 0; i < logList.size(); i++)
+    {
+        Log log = logList[i];
+        freqs[(int)log.faceType]++;
+        freqs[(int)log.sitType]++;
+    }
+    qDebug() << "Loadder:" << freqs;
+
+    emit updateBarChart(freqs);
+    mp_thread->quit();
+    mp_thread->wait();
+
 }

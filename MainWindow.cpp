@@ -19,6 +19,7 @@
 
 #include "connectdialog.h"
 #include "trainfacewidget.h"
+#include "barchartwindow.h"
 
 MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
@@ -253,4 +254,10 @@ void MainWindow::on_actionUser_Name_triggered()
 void MainWindow::on_actionUser_Id_triggered()
 {
     QMessageBox::information(this, "User ID", QString::number(Session::UserId), QMessageBox::Ok);
+}
+
+void MainWindow::on_actionBar_Chart_triggered()
+{
+    BarChartWindow *p_barChartWindow = new BarChartWindow(this);
+    p_barChartWindow->show();
 }

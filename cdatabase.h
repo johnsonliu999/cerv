@@ -54,6 +54,7 @@ public:
 
     QList<Log> selectLog(const int limit = 10);
     QList<Log> selectLog(const QDate &date, const int limit = 10);
+    QList<Log> selectLog(const QDate &from, const QDate &to);
     void insertLog(const Log &log);
 
 private:

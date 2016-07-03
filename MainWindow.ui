@@ -697,8 +697,9 @@
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
-     <string>长期报告</string>
+     <string>Report</string>
     </property>
+    <addaction name="actionBar_Chart"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -773,6 +774,11 @@
   <action name="actionUser_Id">
    <property name="text">
     <string>User Id</string>
+   </property>
+  </action>
+  <action name="actionBar_Chart">
+   <property name="text">
+    <string>Bar Chart</string>
    </property>
   </action>
  </widget>

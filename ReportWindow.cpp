@@ -42,9 +42,9 @@ void ReportWindow::setupTable()
 
     mp_loadder = new Loadder;
     qRegisterMetaType<QList<Log> >("QList<Log>");
-    connect(this, &ReportWindow::loadLog, mp_loadder, &Loadder::loadLog);
+    connect(this, SIGNAL(ReportWindow::loadLog(QDate)), mp_loadder, SLOT(loadLog(QDate)));
     connect(mp_loadder, &Loadder::updateLogTable, this, &ReportWindow::updateLogTable);
-    connect(mp_loadder, &Loadder::finishedLoad, this, &ReportWindow::deleteLoadder);
+    connect(mp_loadder, &Loadder::finishLoad, this, &ReportWindow::deleteLoadder);
     connect(mp_loadder, &Loadder::info, this, &ReportWindow::info);
 
     emit loadLog(m_date);
