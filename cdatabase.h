@@ -35,7 +35,7 @@ struct DBParams
 class CDatabase
 {
 public:
-    CDatabase(const QString connName, const DBParams& params);
+    CDatabase(const QString connName, const DBParams& params = DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306));
     ~CDatabase();
 
     void openDB();
@@ -52,11 +52,9 @@ public:
     void insertCoordinate(const OrgansCoordinate &coordinate);
     void updateCoordinate(const OrgansCoordinate &coordinate);
 
-    QList<Log> selectLog(int limit = 10);
+    QList<Log> selectLog(const int limit = 10);
+    QList<Log> selectLog(const QDate &date, const int limit = 10);
     void insertLog(const Log &log);
-
-
-
 
 private:
     QSqlDatabase m_db; ///< Database object. Different thread need different instance.

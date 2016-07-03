@@ -39,6 +39,8 @@ private:
 signals:
     void getRecentFaceType(Face::FaceType &faceType);
     void getRecentSitType(Sit::SitType &sitType);
+    void startTimer();
+    void stopped();
 
 public slots:
     void start();

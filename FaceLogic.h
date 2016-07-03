@@ -20,10 +20,8 @@ class FaceLogic : public QObject
 {
     Q_OBJECT
 public:
-    FaceLogic();
+    FaceLogic(QObject *parent = 0);
     ~FaceLogic();
-
-    static QString Enum2String(const Face::FaceType &faceType);
 
     void start();
     void stop();
@@ -45,6 +43,7 @@ private:
     QList<int> *mp_statList;
     CFaceClassfier *mp_classifier;
     CCameraReader *mp_reader;
+    QThread *mp_thread;
 };
 
 #endif //FACELOGIC_H

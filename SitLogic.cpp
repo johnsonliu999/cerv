@@ -6,7 +6,8 @@ const int RES_NUM = 5; ///< the number of results kept by stType
 /// \brief SitLogic::SitLogic
 /// initialize the statistic list
 ///
-SitLogic::SitLogic() :
+SitLogic::SitLogic(QObject *parent) :
+    QObject(parent),
     mp_statList(new QList<int>),
     mp_resList(new QList<Sit::SitType>),
     mp_predictor(new CPredictor)
@@ -98,7 +99,7 @@ void SitLogic::updateSitRes(const QString portName)
 //    QTime t2 = QTime::currentTime();
 //    qDebug() << "Sit time cost :" << t1.msecsTo(t2);
 
-    emit updateDisp(Enum2String(getRecentRes()));
+    emit updateDisp(CPredictor::Enum2String(getRecentRes()));
 }
 
 void SitLogic::getRecentType(Sit::SitType &type)
@@ -106,34 +107,6 @@ void SitLogic::getRecentType(Sit::SitType &type)
     type = getRecentRes();
 }
 
-///
-/// \brief SitLogic::fetchJudgedMessage provide sit type in string format.
-/// \param Sit::SitType
-/// \return Seat type in string format.
-///
-QString SitLogic::Enum2String(Sit::SitType sitType)
-{
-    switch (sitType) {
-    case Sit::NORMAL:
-        return "Normal";
-        break;
-    case Sit::LEFTWARD:
-        return "Leftward";
-        break;
-    case Sit::RIGHTWARD:
-        return "Rightward";
-        break;
-    case Sit::BACKWARD:
-        return "Backward";
-        break;
-    case Sit::FORWARD:
-        return "Forward";
-        break;
-    case Sit::UNKNOWN:
-        return "Unknown";
-        break;
-    }
-}
 
 void SitLogic::start()
 {

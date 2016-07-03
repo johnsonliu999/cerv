@@ -36,7 +36,9 @@ Face::FaceType FaceLogic::getRecentRes()
 /// \param mouth Mouth position.
 /// \return success or not.
 ///
-FaceLogic::FaceLogic() :
+FaceLogic::FaceLogic(QObject *parent) :
+    QObject(parent),
+    mp_thread(new QThread(this)),
     mp_resList(new QList<Face::FaceType>),
     mp_statList(new QList<int>),
     mp_reader(new CCameraReader),
@@ -131,7 +133,7 @@ void FaceLogic::updateFaceRes()
 //    QTime t2 = QTime::currentTime();
 //    qDebug() << "Face time cost :" << t1.msecsTo(t2);
 
-    emit updateDisp(Enum2String(getRecentRes()));
+    emit updateDisp(CFaceClassfier::Enum2String(getRecentRes()));
 }
 
 void FaceLogic::getRecentType(Face::FaceType &type)
@@ -139,27 +141,4 @@ void FaceLogic::getRecentType(Face::FaceType &type)
     type = getRecentRes();
 }
 
-QString FaceLogic::Enum2String(const Face::FaceType &faceType)
-{
-    switch (faceType)
-	{
-        case Face::NORMAL:
-            return "Normal";
-			break;
-        case Face::BACKWARD:
-            return "Backward";
-			break;
-        case Face::FORWARD:
-            return "Forward";
-			break;
-        case Face::LEFTWARD:
-            return "Leftward";
-			break;
-        case Face::RIGHTWARD:
-            return "Rightward";
-			break;
-        case Face::UNKNOWN:
-            return "Unknown";
-			break;
-    }
-}
+

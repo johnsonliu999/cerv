@@ -37,7 +37,7 @@ public slots:
     void updateSitDisp(const QString text);
     void updateFaceDisp(const QString text);
     void updateCameraDisp(const QImage &img);
-
+    void deleteLogger();
     void info(const QString title, const QString text);
 
 private slots:
@@ -51,6 +51,10 @@ private slots:
 
     void on_trainFace_triggered();
     void on_trainSit_triggered();
+
+    void on_actionUser_Name_triggered();
+
+    void on_actionUser_Id_triggered();
 
 private:
     Ui::MainWindow *ui;

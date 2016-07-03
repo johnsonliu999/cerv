@@ -1,9 +1,17 @@
 #include "ReportWindow.h"
+#include "logger.h"
+#include "cfaceclassfier.h"
+#include "cpredictor.h"
+#include "loadder.h"
+
 #include "ui_ReportWindow.h"
 #include <QStandardItemModel>
+#include <QMessageBox>
 
-ReportWindow::ReportWindow(QWidget *parent) :
+ReportWindow::ReportWindow(QWidget *parent, const QDate &date) :
     QMainWindow(parent),
+    mp_model(new QStandardItemModel(this)),
+    m_date(date),
     ui(new Ui::ReportWindow)
 {
     ui->setupUi(this);
@@ -13,49 +21,54 @@ ReportWindow::ReportWindow(QWidget *parent) :
 
 ReportWindow::~ReportWindow()
 {
+
     delete ui;
 }
 
 void ReportWindow::setupTable()
 {
-    QStandardItemModel  *model = new QStandardItemModel();
-
     //set model
-    model->setColumnCount(6);
-    model->setHeaderData(0,Qt::Horizontal,"Index");
-    model->setHeaderData(1, Qt::Horizontal, "Date");
-    model->setHeaderData(2,Qt::Horizontal,"Time");
-    model->setHeaderData(3,Qt::Horizontal,"Face Type");
-    model->setHeaderData(4,Qt::Horizontal,"Sit Type");
+    mp_model->setColumnCount(3);
+
+    mp_model->setHeaderData(0,Qt::Horizontal,"Time");
+    mp_model->setHeaderData(1,Qt::Horizontal,"Face Type");
+    mp_model->setHeaderData(2,Qt::Horizontal,"Sit Type");
+
+
 
     //set tableView
-    ui->tableView->setModel(model);
-//    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(3,QHeaderView::Fixed);
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(4,QHeaderView::Fixed);
+    ui->tableView->setModel(mp_model);
+    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
 
-//    ui->tableView->setColumnWidth(0,101);
-//    ui->tableView->setColumnWidth(1,102);
-//    ui->tableView->setColumnWidth(2,102);
-//    ui->tableView->setColumnWidth(3,102);
-//    ui->tableView->setColumnWidth(4,102);
+    mp_loadder = new Loadder;
+    qRegisterMetaType<QList<Log> >("QList<Log>");
+    connect(this, &ReportWindow::loadLog, mp_loadder, &Loadder::loadLog);
+    connect(mp_loadder, &Loadder::updateLogTable, this, &ReportWindow::updateLogTable);
+    connect(mp_loadder, &Loadder::finishedLoad, this, &ReportWindow::deleteLoadder);
+    connect(mp_loadder, &Loadder::info, this, &ReportWindow::info);
 
+    emit loadLog(m_date);
+}
 
-//    // add data
-//     for(int i = 0; i < reportSet.size(); i++)
-//     {
-//         Log log =reportSet[i];
-//         model->setItem(i,0,new QStandardItem(log.id));
-//         model->item(i,0)->setForeground(QBrush(QColor(255, 0, 0)));
-//         model->item(i,0)->setTextAlignment(Qt::AlignCenter);
-//         model->setItem(i,1,new QStandardItem(log.face_type));
-//         model->setItem(i,2,new QStandardItem(log.sit_type));
-//         model->setItem(i,3,new QStandardItem(log.start_t.toString("hh:mm:ss")));
-//         model->setItem(i,4,new QStandardItem(log.end_t.toString("hh:mm:ss")));
-//         model->setItem(i,5,new QStandardItem(log.start_t.secsTo(log.end_t)));
-//     }
+void ReportWindow::updateLogTable(const QList<Log> &logList)
+{
+    qDebug() << "Called updateLogTable";
+    qDebug() << logList.size();
+    for (int i = 0; i < logList.size(); i++)
+    {
+        Log log = logList[i];
+        mp_model->setItem(i, 0, new QStandardItem(log.time.toString("hh:mm:ss")));
+        mp_model->setItem(i, 1, new QStandardItem(CFaceClassfier::Enum2String((Face::FaceType)log.faceType)));
+        mp_model->setItem(i, 2, new QStandardItem(CPredictor::Enum2String((Sit::SitType)log.sitType)));
+    }
+}
 
+void ReportWindow::info(const QString &title, const QString &text)
+{
+    QMessageBox::information(this, title, text, QMessageBox::Ok);
+}
+
+void ReportWindow::deleteLoadder()
+{
+    delete mp_loadder;
 }

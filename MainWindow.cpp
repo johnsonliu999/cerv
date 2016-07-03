@@ -24,12 +24,12 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
     QMainWindow(parent), wired(wired),
     ui(new Ui::MainWindow),
     mp_db(new CDatabase("main_window", DBParams("QMYSQL", "localhost", "neck", "root", "qq452977491", 3306))),
-    mp_sitProcTimer(new QTimer),
-    mp_cameraTimer(new QTimer),
-    mp_sitLogic(new SitLogic),
-    mp_faceLogic(new FaceLogic),
-    mp_sitLogicThd(new QThread),
-    mp_faceLogicThd(new QThread)
+    mp_sitProcTimer(new QTimer(this)),
+    mp_cameraTimer(new QTimer(this)),
+    mp_sitLogic(new SitLogic(this)),
+    mp_faceLogic(new FaceLogic(this)),
+    mp_sitLogicThd(new QThread(this)),
+    mp_faceLogicThd(new QThread(this))
 {
     ui->setupUi(this);
 
@@ -57,9 +57,11 @@ MainWindow::MainWindow(bool wired, QWidget *parent) :
 
     /* end connection */
 
+    mp_sitLogic->setParent(0);
     mp_sitLogic->moveToThread(mp_sitLogicThd);
     mp_sitLogicThd->start();
 
+    mp_faceLogic->setParent(0);
     mp_faceLogic->moveToThread(mp_faceLogicThd);
     mp_faceLogicThd->start();
 }
@@ -68,11 +70,11 @@ MainWindow::~MainWindow()
 {
     QSqlDatabase::removeDatabase("main_win");
 
-    mp_faceLogicThd->quit();
-    mp_faceLogicThd->wait();
+//    mp_faceLogicThd->quit();
+//    mp_faceLogicThd->wait();
 
     mp_sitLogicThd->quit();
-    mp_faceLogicThd->wait();
+    mp_sitLogicThd->wait();
 }
 
 void MainWindow::shakeFrm()
@@ -96,6 +98,11 @@ void MainWindow::updateCameraDisp(const QImage &img)
     ui->cameraDisp->setPixmap(QPixmap::fromImage(img));
 }
 
+void MainWindow::deleteLogger()
+{
+    delete mp_logger;
+}
+
 void MainWindow::info(const QString title, const QString text)
 {
     QMessageBox::information(this, title, text, QMessageBox::Ok);
@@ -117,7 +124,7 @@ void MainWindow::on_MainWindow_destroyed()
 
 void MainWindow::on_calendarWidget_clicked(const QDate &date)
 {
-    ReportWindow* w = new ReportWindow(this);
+    ReportWindow* w = new ReportWindow(this, date);
     w->show();
 }
 
@@ -171,6 +178,7 @@ void MainWindow::on_startButton_clicked()
         mp_logger = new Logger(mp_faceLogic, mp_sitLogic);
         connect(this, &MainWindow::startLog, mp_logger, &Logger::start);
         connect(this, &MainWindow::stopLog, mp_logger, &Logger::stop);
+        connect(mp_logger, &Logger::stopped, this, &MainWindow::deleteLogger);
 
         emit startLog();
     }
@@ -235,4 +243,14 @@ void MainWindow::on_trainSit_triggered()
     collectDialog c(portName, b_exist);
     c.exec();
     ui->COMComboBox->setEnabled(true);
+}
+
+void MainWindow::on_actionUser_Name_triggered()
+{
+    QMessageBox::information(this, "User Name", Session::Username, QMessageBox::Ok);
+}
+
+void MainWindow::on_actionUser_Id_triggered()
+{
+    QMessageBox::information(this, "User ID", QString::number(Session::UserId), QMessageBox::Ok);
 }

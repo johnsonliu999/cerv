@@ -39,6 +39,30 @@ CPredictor::~CPredictor()
 
 }
 
+QString CPredictor::Enum2String(Sit::SitType sitType)
+{
+    switch (sitType) {
+    case Sit::NORMAL:
+        return "Normal";
+        break;
+    case Sit::LEFTWARD:
+        return "Leftward";
+        break;
+    case Sit::RIGHTWARD:
+        return "Rightward";
+        break;
+    case Sit::BACKWARD:
+        return "Backward";
+        break;
+    case Sit::FORWARD:
+        return "Forward";
+        break;
+    case Sit::UNKNOWN:
+        return "Unknown";
+        break;
+    }
+}
+
 /**
  * @brief CPredictor::Predict
  * 预测函数，需在Initialize后调用
@@ -125,7 +149,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,Sit::SitType typ
     QList< QList<int> > recList; // 每个类型的记录条数，用来判断是否达标
     int total = 0;
 
-    qDebug() << "Now collect" <<" Sit::SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, please keep";
+    qDebug() << "Now collect" <<" Sit::SitType ["  <<CPredictor::Enum2String(type)<<"] "<< "data, please keep";
     // since the matrix start with 0
     while (total + 1 < NUMBER_OF_TRAINING_SAMPLE_PER_CLASS)
     {
@@ -149,7 +173,7 @@ void CPredictor::collectCertainType(const CSerialReader& reader,Sit::SitType typ
         QThread::sleep(5);
     }
 
-    qDebug() << "finished collect" <<" Sit::SitType ["  <<SitLogic::Enum2String(type)<<"] "<< "data, congratulation";
+    qDebug() << "finished collect" <<" Sit::SitType ["  <<CPredictor::Enum2String(type)<<"] "<< "data, congratulation";
 
 }
 
@@ -252,7 +276,7 @@ void CPredictor::trainData(const QString portName, const bool b_replace)
 
         for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
-            emit information("Collect information", "Going to collect " + SitLogic::Enum2String((Sit::SitType)i) + " data");
+            emit information("Collect information", "Going to collect " + CPredictor::Enum2String((Sit::SitType)i) + " data");
             collectCertainType(reader, (Sit::SitType)i);
         }
 

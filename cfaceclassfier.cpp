@@ -36,6 +36,31 @@ CFaceClassfier::~CFaceClassfier()
 
 }
 
+QString CFaceClassfier::Enum2String(Face::FaceType faceType)
+{
+    switch (faceType)
+    {
+        case Face::NORMAL:
+            return "Normal";
+            break;
+        case Face::BACKWARD:
+            return "Backward";
+            break;
+        case Face::FORWARD:
+            return "Forward";
+            break;
+        case Face::LEFTWARD:
+            return "Leftward";
+            break;
+        case Face::RIGHTWARD:
+            return "Rightward";
+            break;
+        case Face::UNKNOWN:
+            return "Unknown";
+            break;
+    }
+}
+
 ///
 /// \brief CFaceClassfier::clarrify
 /// will circle out the position

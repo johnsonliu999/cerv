@@ -61,7 +61,8 @@ HEADERS += \
     ccamerareader.h \
     cfaceclassfier.h \
     trainfacewidget.h \
-    logger.h
+    logger.h \
+    loadder.h
 
 SOURCES += \
     capture.cpp \
@@ -82,7 +83,8 @@ SOURCES += \
     ccamerareader.cpp \
     cfaceclassfier.cpp \
     trainfacewidget.cpp \
-    logger.cpp
+    logger.cpp \
+    loadder.cpp
 
 
 DISTFILES += \

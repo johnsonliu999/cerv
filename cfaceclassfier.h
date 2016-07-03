@@ -46,6 +46,8 @@ public:
     CFaceClassfier();
     ~CFaceClassfier();
 
+    static QString Enum2String(Face::FaceType faceType);
+
     Face::FaceType clarrify(const Mat &frame, QList<QPoint> &points);
 
     void loadModel(const cv::String &parentPath);

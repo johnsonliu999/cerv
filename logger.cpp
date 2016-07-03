@@ -26,7 +26,13 @@ void Logger::log()
     Log log;
     log.faceType = faceType;
     log.sitType = sitType;
-    mp_db->insertLog(log);
+    try{
+        mp_db->insertLog(log);
+    } catch (const QString &e)
+    {
+        qDebug() << "Logger::log : Insert log failed.";
+        qDebug() << "Logger::log :" << e;
+    }
 }
 
 void Logger::start()
@@ -40,13 +46,15 @@ void Logger::start()
         throw e;
     }
 
-    mp_thread = new QThread;
-    this->moveToThread(mp_thread);
+    mp_thread = new QThread(this);
     mp_thread->start();
+    mp_timer = new QTimer(this);
+    mp_timer->setInterval(20*1000);
 
-    mp_timer = new QTimer();
+    moveToThread(mp_thread);
     connect(mp_timer, &QTimer::timeout, this, &Logger::log);
-    mp_timer->start(20*1000);
+    connect(this, SIGNAL(startTimer()), mp_timer, SLOT(start()));
+    emit startTimer();
 }
 
 void Logger::stop()
@@ -57,10 +65,9 @@ void Logger::stop()
     {
         mp_timer->stop();
         disconnect(mp_timer, &QTimer::timeout, this, &Logger::log);
-        mp_timer->~QTimer();
 
         mp_thread->quit();
         mp_thread->wait();
-        mp_thread->~QThread();
     }
+    emit stopped();
 }

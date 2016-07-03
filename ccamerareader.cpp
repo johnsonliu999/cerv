@@ -42,7 +42,13 @@ void CCameraReader::openCamera()
 
 void CCameraReader::closeCamera()
 {
-    mp_camera->release();
+    try {
+        mp_camera->release();
+    } catch(const Exception &e)
+    {
+        qDebug() << "CCameraReader::closeCamera : cannot release camera";
+        qDebug() << e.what();
+    }
 }
 
 void CCameraReader::startDispCamera()

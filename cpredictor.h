@@ -37,6 +37,8 @@ public:
     CPredictor();
     ~CPredictor();
 
+    static QString Enum2String(Sit::SitType sitType);
+
     Sit::SitType classify(const QList<int> & iPredictData);
     void loadFromDB();
     void save2DB(bool b_exist);

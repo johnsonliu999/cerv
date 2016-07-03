@@ -18,9 +18,7 @@ class SitLogic : public QObject
 {
     Q_OBJECT
 public:
-    SitLogic();
-
-    static QString Enum2String(Sit::SitType sitType);
+    SitLogic(QObject *parent = 0);
 
     void start();
     void stop();
