@@ -27,6 +27,7 @@ signals:
 
 public slots:
     void updateBarChart(const QVector<double> &values);
+    void updateShow(const QString &text);
     void info(const QString &title, const QString &text);
 
 private:

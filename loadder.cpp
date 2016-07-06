@@ -86,8 +86,18 @@ void Loadder::loadLog(const QDate &from, const QDate &to)
         freqs[(int)log.sitType]++;
     }
     qDebug() << "Loadder:" << freqs;
-
     emit updateBarChart(freqs);
+
+    int maxIndex = 0;
+    for (int i = 0; i < 6; i++)
+    {
+        if (freqs[maxIndex] < freqs[i])
+            maxIndex = i;
+    }
+
+    QString showString = "You tend to be " + CFaceClassfier::Enum2String((Face::FaceType)maxIndex);
+
+    emit updateShow(showString);
     mp_thread->quit();
     mp_thread->wait();
 

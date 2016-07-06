@@ -21,6 +21,7 @@ signals:
     void finishLoad();
     void info(const QString &title, const QString &text);
     void infoBarChart(const QString &title, const QString &text);
+    void updateShow(const QString &text);
 
 public slots:
     void loadLog(const QDate &date);

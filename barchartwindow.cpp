@@ -19,6 +19,7 @@ BarChartWindow::BarChartWindow(QWidget *parent) :
     connect(this, SIGNAL(loadBarChartData(QDate,QDate)), mp_loadder, SLOT(loadLog(QDate,QDate)));
     connect(mp_loadder, &Loadder::updateBarChart, this, &BarChartWindow::updateBarChart);
     connect(mp_loadder, &Loadder::infoBarChart, this, &BarChartWindow::info);
+    connect(mp_loadder, &Loadder::updateShow, this, &BarChartWindow::updateShow);
 
     initalizeBarChart();
 }
@@ -50,16 +51,33 @@ void BarChartWindow::updateBarChart(const QVector<double> &values)
     ui->widget->rescaleAxes();
 
     double width = ui->widget->xAxis->range().upper - ui->widget->xAxis->range().lower;
-    double step = mp_bars->width()+(1.0*width-mp_bars->width()*5)/4;
+    double step = mp_bars->width()+(width-mp_bars->width()*5)/4;
+
+    qDebug() << "upper" << ui->widget->xAxis->range().upper;
+    qDebug() << "lower" << ui->widget->xAxis->range().lower;
+    qDebug() << "step" << step;
+
+
     QVector<double> coor;
     for (int i = 0; i < 6; i++)
         coor.append(ui->widget->xAxis->range().lower+i*step+mp_bars->width()/2);
     ui->widget->xAxis->setTickVector(coor);
 
     QVector<QString> labels;
-    labels << "NORMAL" << "BACKWARD" << "FORWARD" << "RIGHTWARD" << "LEFTWARD" << "UNKNOWN";
-    ui->widget->xAxis->setTickVectorLabels(labels);
+    labels << "norm" << "back" << "fore" << "right" << "left" << "unknown";
+
+    qDebug() << "Coor:" << coor;
+    qDebug() << "Labels:" << labels;
+    qDebug() << "Values:" << values;
+
+//    ui->widget->xAxis->setTickVectorLabels(labels);
+//    ui->widget->rescaleAxes();
     ui->widget->replot();
+}
+
+void BarChartWindow::updateShow(const QString &text)
+{
+    ui->textBrowser->setText(text);
 }
 
 void BarChartWindow::info(const QString &title, const QString &text)
