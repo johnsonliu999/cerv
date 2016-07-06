@@ -3,7 +3,6 @@
 #include "logdialog.h"
 
 #include "cdatabase.h"
-#include "Log.h"
 #include "DAO.h"
 #include "connectdialog.h"
 

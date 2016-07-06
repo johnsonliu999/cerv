@@ -39,7 +39,8 @@ void LogDialog::on_buttonBox_clicked(QAbstractButton *button)
         }
 
         try{    
-            Session::UserId = mp_db->selectUserId(ui->nameLineEdit->text());
+            if (-1==(Session::UserId = mp_db->selectUserId(ui->nameLineEdit->text())))
+                    throw QString("User not exist.");
             mp_db->closeDB();
         }catch(const QString & e)
         {

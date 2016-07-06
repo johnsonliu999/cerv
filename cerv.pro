@@ -40,14 +40,12 @@ D:/Download/OpenCV/opencv/build/include/opencv \
 D:/Download/OpenCV/opencv/build/include/opencv2
 
 HEADERS += \
-    capture.h \
     cdatabase.h \
     collectdialog.h \
     cpredictor.h \
     cserialreader.h \
     DAO.h \
     FaceLogic.h \
-    Log.h \
     logdialog.h \
     MainWindow.h \
     MySession.h \
@@ -68,7 +66,6 @@ HEADERS += \
     barchartwindow.h
 
 SOURCES += \
-    capture.cpp \
     cdatabase.cpp \
     collectdialog.cpp \
     cpredictor.cpp \
