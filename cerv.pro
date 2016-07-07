@@ -44,7 +44,6 @@ HEADERS += \
     collectdialog.h \
     cpredictor.h \
     cserialreader.h \
-    DAO.h \
     FaceLogic.h \
     logdialog.h \
     MainWindow.h \
@@ -54,8 +53,6 @@ HEADERS += \
     ReportWindow.h \
     SitLogic.h \
     TotalLogic.h \
-    User.h \
-    Utils.h \
     connectdialog.h \
     ccamerareader.h \
     cfaceclassfier.h \
@@ -70,7 +67,6 @@ SOURCES += \
     collectdialog.cpp \
     cpredictor.cpp \
     cserialreader.cpp \
-    DAO.cpp \
     FaceLogic.cpp \
     logdialog.cpp \
     main.cpp \
