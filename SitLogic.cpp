@@ -39,10 +39,9 @@ Sit::SitType SitLogic::getRecentRes()
 void SitLogic::readOnce(const QString& portName)
 {
     CSerialReader reader(portName);
-    QSerialPort* p_port;
 
     try{
-        p_port = reader.openPort();
+        reader.openPort();
     } catch(const QString& e)
     {
         emit info("readOnce", e);
@@ -54,12 +53,12 @@ void SitLogic::readOnce(const QString& portName)
         records = reader.getTrainData();
     } catch(const QString& e)
     {
-        p_port->close();
+        reader.closePort();
         emit info("readOnce", e);
         return ;
     }
 
-    p_port->close();
+    reader.closePort();
 
     // update statistics
     for(int i = 0; i < records.length(); i++)

@@ -80,8 +80,12 @@ void CDatabase::updateXml(const QByteArray &xml)
     QSqlQuery query(m_db);
     query.prepare("update predictor set xml=? where userid=?");
     query.addBindValue(xml);
+    query.addBindValue(Session::UserId);
     if (!query.exec())
+    {
         throw QString("updateXml:")+query.lastError().text();
+        qDebug() << "CDatabase::updateXml :" << query.lastError().text();
+    }
     qDebug() << "Update xml succeed.";
     qDebug() << query.numRowsAffected() << "rows affected";
 }
@@ -246,7 +250,10 @@ void CDatabase::insertLog(const Log &log)
 void CDatabase::openDB()
 {
     if (m_db.isOpen())
-        throw QString("Database has already been opened by other function.");
+    {
+        qDebug() << "Database has already been opened by other function.";
+        return ;
+    }
 
     if (!m_db.open())
         throw QString("Opening database failed, DB cannot use\n" + m_db.lastError().text());

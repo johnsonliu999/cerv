@@ -256,7 +256,6 @@ void CFaceClassfier::loadModel(const String &parentPath)
 }
 
 #include "cdatabase.h"
-#include "DAO.h"
 #include "MySession.h"
 void CFaceClassfier::loadFromDB()
 {
@@ -264,7 +263,7 @@ void CFaceClassfier::loadFromDB()
         mp_db->openDB();
     } catch (const QString &e)
     {
-        qDebug() << "CFaceClassifire::loadFromDB:Cannot open DB";
+        qDebug() << "CFaceClassifire::loadFromDB : Cannot open DB";
         throw e;
     }
 
@@ -289,8 +288,11 @@ void CFaceClassfier::save2DB()
         throw e;
     }
 
+    bool b_exist = false;
     try {
         mp_db->selectCoordinate();
+        b_exist = true;
+        mp_db->closeDB();
     } catch(const QString &e)
     {
         mp_db->closeDB();
@@ -301,8 +303,9 @@ void CFaceClassfier::save2DB()
         }
     }
 
+
     try {
-        save2DB(false);
+        save2DB(b_exist);
     } catch(const QString &e)
     {
         qDebug() << "CFaceClassfier::save2DB():" << e;
@@ -417,6 +420,7 @@ void CFaceClassfier::train()
         remainTime -= t1.msecsTo(QTime::currentTime());
         QThread::msleep(500);
     }
+    reader.closeCamera();
     emit updateDisp(CCameraReader::Mat2QImage(frame), QString::number(0, 'f', 2));
 
     qDebug() << leftEyeList.size() << rightEyeList.size() << mouthList.size();
@@ -434,8 +438,6 @@ void CFaceClassfier::train()
     qDebug() << "Left Eye : " << mp_coordinate->leftEye.x() << mp_coordinate->leftEye.y();
     qDebug() << "Right Eye : " << mp_coordinate->rightEye.x() << mp_coordinate->rightEye.y();
     qDebug() << "Mouth : " << mp_coordinate->mouth.x() << mp_coordinate->mouth.y();
-
-    reader.closeCamera();
 
     try {
         save2DB();

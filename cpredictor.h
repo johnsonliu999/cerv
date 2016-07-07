@@ -7,8 +7,6 @@
 #include <QObject>
 #include <QThread>
 
-#include "User.h"
-
 using namespace cv;
 using namespace cv::ml;
 

@@ -5,13 +5,12 @@
 
 //dao model  session
 #include "Predictor.h"
-#include "DAO.h"
 #include "MySession.h"
 
 const int ATTRIBUTE_PRE_SAMPLE = 20;
-const int NUMBER_OF_TRAINING_SAMPLE_PER_CLASS = 500;
+const int NUMBER_OF_TRAINING_SAMPLE_PER_CLASS = 200;
 
-const int SIT_TYPE_NUM = 6;
+const int SIT_TYPE_NUM = 5;
 
 #include "cdatabase.h"
 
@@ -271,20 +270,31 @@ bool CPredictor::isTrained()
 
 void CPredictor::trainData(const QString portName, const bool b_replace)
 {
-    try{
-        CSerialReader reader(portName);
+    CSerialReader reader(portName);
 
+    try {
+        reader.openPort();
+    } catch (const QString &e)
+    {
+        qDebug() << "CPredictor::trainData : " << e;
+        emit information("CPredictor::trainData", e);
+        return ;
+    }
+
+    try{
         for (int i = 0; i < SIT_TYPE_NUM; i++)
         {
             emit information("Collect information", "Going to collect " + CPredictor::Enum2String((Sit::SitType)i) + " data");
             collectCertainType(reader, (Sit::SitType)i);
         }
 
+        reader.closePort();
         emit information("Collect information", "Finished collect");
 
     }catch (const QString & e)
     {
         emit information("trainData", e);
+        reader.closePort();
         return;
     }
 

@@ -1,8 +1,6 @@
 #ifndef PREDICTOR
 #define PREDICTOR
 
-
-#include "User.h"
 #include <QByteArray>
 
 /**

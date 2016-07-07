@@ -35,15 +35,18 @@ CSerialReader::~CSerialReader()
 /// \exception <QString> {}
 ///  \return
 ///
-QSerialPort* CSerialReader::openPort() const
+void CSerialReader::openPort() const
 {
     if (mp_port->isOpen())
         throw QString("Port has been opened by other function.");
 
     if (!mp_port->open(QSerialPort::ReadWrite))
         throw QString("getPort : ") + mp_port->errorString();
+}
 
-    return mp_port;
+void CSerialReader::closePort()
+{
+    mp_port->close();
 }
 
 ///
@@ -62,22 +65,22 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
     /*** connect device ***/
     qDebug() << "Device found, try to connect";
     // try to connect the device
-    QSerialPort* p_port = openPort();
+    openPort();
 
     try{
-        if (-1 == p_port->write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
+        if (-1 == mp_port->write("at+cona"+cDevAddr.toLatin1()+"\r\n"))
            throw QString("Error write conna");
 
         qDebug() << "Wait for receive cona info";
-        if (!p_port->waitForReadyRead(2000))
+        if (!mp_port->waitForReadyRead(2000))
             throw QString("long wait");
 
+        closePort();
     } catch (const QString& e)
     {
-        p_port->close();
+        closePort();
         throw e;
     }
-    p_port->close();
 }
 
 ///
@@ -86,11 +89,11 @@ void CSerialReader::ConnectDevice(const QString &cDevAddr)
 ///
 bool CSerialReader::isConnected()
 {
-    QSerialPort* p_port = openPort();
+    openPort();
 
     bool f = mp_port->waitForReadyRead(2000);
 
-    p_port->close();
+    closePort();
 
     return f;
 }
@@ -108,25 +111,25 @@ QList<QString> CSerialReader::findDev()
         throw QString("Device has been connected.");
 
     // write inquery and receive response.
-    QSerialPort* p_port = openPort();
+    openPort();
     try{
-        if (-1 == p_port->write("at+inq\r\n"))
+        if (-1 == mp_port->write("at+inq\r\n"))
             throw QString("Port write error.");
 
-        if (!p_port->waitForReadyRead(2000))
+        if (!mp_port->waitForReadyRead(2000))
             throw QString("Time out");
 
     } catch(const QString& e)
     {
-        p_port->close();
+        closePort();
         throw e;
     }
 
     QByteArray res;
-    while (p_port->waitForReadyRead(5000))
+    while (mp_port->waitForReadyRead(5000))
         res += mp_port->read(100);
 
-    p_port->close();
+    closePort();
 
     // analyse response.
     if (!res.contains("INQE"))

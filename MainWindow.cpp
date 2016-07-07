@@ -174,6 +174,7 @@ void MainWindow::on_startButton_clicked()
         mp_sitProcTimer->start(3000);
         ui->COMComboBox->setEnabled(false);
         ui->startButton->setText("Stop");
+        ui->startInfo->setPlainText("Classification Starts");
 
         // logger
         mp_logger = new Logger(mp_faceLogic, mp_sitLogic);
@@ -192,6 +193,7 @@ void MainWindow::on_startButton_clicked()
         mp_faceLogic->stop();
         ui->COMComboBox->setEnabled(true);
         ui->startButton->setText("Start");
+        ui->startInfo->setPlainText("Classification Stopped");
     }
 }
 
